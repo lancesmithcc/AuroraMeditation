@@ -122,9 +122,9 @@ export async function generateMeditationScript(theme: string): Promise<string | 
 
   const systemPrompt = `
 You are an expert meditation scriptwriter.
-Your task is to generate a short, calming guided meditation script based on the following theme.
-The script should be approximately 150-250 words.
-It should have a clear beginning (e.g., settling in, focusing on breath), middle (exploring the theme, visualization), and end (e.g., gentle return to awareness, carrying peace forward).
+Your task is to generate a calming guided meditation script based on the following theme, suitable for a 5-minute meditation session.
+The script should be approximately 1000-1500 words.
+It should have a clear beginning (e.g., settling in, focusing on breath), middle (exploring the theme, visualization, deepening relaxation), and end (e.g., gentle return to awareness, carrying peace forward).
 
 CRITICAL INSTRUCTIONS FOR PACING AND TONE:
 - Write in short, simple sentences.
