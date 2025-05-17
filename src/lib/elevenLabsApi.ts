@@ -6,12 +6,12 @@ const ELEVENLABS_API_URL_BASE = 'https://api.elevenlabs.io/v1/text-to-speech';
 // You can find voice IDs in your ElevenLabs voice lab or use pre-made ones.
 // Pre-made voices: https://elevenlabs.io/docs/api-reference/premade-voices
 const voiceProfileToIdMap: Record<VoiceProfile, string> = {
-  'calm_female_gentle': 'pjcYQlDFKMbcOUp6F5GD', // Britney (calm, soothing)
-  'soothing_male_deep': 'p28fY1cl6tovhD2M4WEH', // Adam (deep, soothing)
-  'clear_female_neutral': 'Qggl4b0xRMiqOwhPtVWT', // Rachel (clear, professional - also default)
-  'warm_male_reassuring': 'IsEXLHzSvLH9UMB6SLHj', // Antoni (Soothing and Relaxing - replacing Giovanni)
+  'calm_female_gentle': 'MF3mGyEYCl7XYWbV9V6O', // Elli (calm, soothing)
+  'soothing_male_deep': 'pNInz6obpgDQGcFmaJgB', // Adam (deep, soothing)
+  'clear_female_neutral': '21m00Tcm4TlvDq8ikWAM', // Rachel (clear, professional - also default)
+  'warm_male_reassuring': 'ErXwobaYiN019PkySvjV', // Antoni (Soothing and Relaxing - replacing Giovanni)
   // 'uplifting_female_bright': 'jsCqWAovK2LkecY7zXl4', // Mimi (can be energetic) - currently commented out
-  'default': 'pjcYQlDFKMbcOUp6F5GD' // Rachel
+  'default': '21m00Tcm4TlvDq8ikWAM' // Rachel
 };
 
 export function getVoiceIdFromProfile(profile?: VoiceProfile): string {
@@ -43,7 +43,7 @@ export async function synthesizeSpeech(
         text: text,
         model_id: 'eleven_multilingual_v2', // Or another model like eleven_monolingual_v1
         voice_settings: {
-          stability: 0.3, // Slightly more stability for consistent tone
+          stability: 0.55, // Slightly more stability for consistent tone
           similarity_boost: 0.70, // Keep similarity reasonable
           style: 0.3, // Lower style exaggeration for a more natural, less "performed" meditation voice
           use_speaker_boost: true 
