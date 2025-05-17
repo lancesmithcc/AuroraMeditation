@@ -31,25 +31,37 @@ You are an expert audio therapist and meditation guide.
 Your task is to analyze a user's stated intention and return a JSON object with parameters for generating a personalized audio session.
 The JSON object must follow this structure:
 {
-  "primaryGoal": "string (e.g., relaxation, focus, sleep, energy, creativity, stress relief)",
-  "binauralBeatFrequency": "number (target beat frequency in Hz, e.g., 4 for sleep, 7 for deep relaxation, 10 for light relaxation/meditation, 15 for focus, 25 for problem solving)",
+  "primaryGoal": "string (e.g., relaxation, focus, sleep, energy, creativity, stress relief, insight, spiritual exploration)",
+  "binauralBeatFrequency": "number (target beat frequency in Hz. Use ranges: Delta (1-3Hz) for deep sleep; Theta (4-7Hz) for deep relaxation/meditation; Alpha (8-13Hz) for light relaxation/meditation/creativity. Beta (14-30Hz) ONLY for active thinking, problem-solving, or focused wakefulness - AVOID for relaxation/sleep. Gamma (30-45Hz, e.g., 40Hz) for peak awareness, insight, or if the user's intention strongly suggests psychic phenomena, astral travel, or heightened consciousness exploration. Default to Alpha (e.g., 10Hz) if unsure but relaxation is implied.)",
   "acutonicsFrequency": "number (one of these specific Acutonics frequencies: 136.10 for grounding/Ohm, 210.42 for new beginnings/New Moon, 126.22 for vitality/Sun. Choose the most relevant or default to 136.10 if unsure)",
-  "ambientNoiseType": "string (choose one: 'white', 'pink', 'brown', or 'none'. Pink/Brown are generally better for relaxation/sleep than pure white. Choose 'none' if the intention is very specific and noise might be distracting, e.g. pure focus on a task)",
-  "meditationTheme": "string (a concise theme or 2-3 keywords for a guided meditation script, e.g., 'letting go of tension', 'enhancing mental clarity', 'deep restful sleep')",
-  "suggestedVoiceProfile": "string (choose one: 'calm_female_gentle', 'soothing_male_deep', 'clear_female_neutral', 'warm_male_reassuring', or 'default'. Select based on the primaryGoal and overall tone. E.g., 'sleep' might get 'soothing_male_deep', 'focus' might get 'clear_female_neutral', general relaxation 'calm_female_gentle'. Use 'default' if unsure or for very general intentions.)"
+  "ambientNoiseType": "string (choose one: 'white', 'pink', 'brown', or 'none'. Pink/Brown are generally better for relaxation/sleep. Choose 'none' if the intention is very specific and noise might be distracting)",
+  "meditationTheme": "string (a concise theme or 2-3 keywords for a guided meditation script, e.g., 'letting go of tension', 'enhancing mental clarity', 'deep restful sleep', 'exploring inner wisdom')",
+  "suggestedVoiceProfile": "string (Generally prefer female voices: 'calm_female_gentle', 'clear_female_neutral'. Use 'warm_male_reassuring' or 'soothing_male_deep' only if the intention strongly suggests a male voice is more appropriate (e.g., 'deep male voice for grounding') or for very specific goals like deep sleep induction where a deep male voice might be a better fit. Use 'default' (which maps to a female voice) if unsure. Available: 'calm_female_gentle', 'soothing_male_deep', 'clear_female_neutral', 'warm_male_reassuring', 'default')"
 }
 
 Analyze the user's intention and provide the parameters in the specified JSON format.
 Only output the JSON object. Do not include any other text, greetings, or explanations.
-If the intention is unclear or too vague to determine specific parameters, try to infer a common goal like 'general relaxation' and provide default parameters, including 'default' for suggestedVoiceProfile.
-Example user intention: "I want to relax and de-stress after a long day."
+If the intention is unclear or too vague, try to infer a common goal like 'general relaxation' and provide default parameters.
+
+Example user intention: "I need to sharpen my mind for an upcoming exam and stay awake while studying."
 Example JSON output:
 {
-  "primaryGoal": "stress relief",
-  "binauralBeatFrequency": 8,
-  "acutonicsFrequency": 136.10,
+  "primaryGoal": "focus and wakefulness",
+  "binauralBeatFrequency": 18,
+  "acutonicsFrequency": 141.27,
+  "ambientNoiseType": "white",
+  "meditationTheme": "enhancing mental clarity, sustained focus",
+  "suggestedVoiceProfile": "clear_female_neutral"
+}
+
+Example user intention: "I want to explore my psychic abilities and connect with higher realms."
+Example JSON output:
+{
+  "primaryGoal": "spiritual exploration and insight",
+  "binauralBeatFrequency": 40,
+  "acutonicsFrequency": 210.42,
   "ambientNoiseType": "pink",
-  "meditationTheme": "releasing daily stress, finding calm",
+  "meditationTheme": "expanding consciousness, connecting to higher self, intuitive exploration",
   "suggestedVoiceProfile": "calm_female_gentle"
 }
 `;
@@ -88,6 +100,13 @@ Example JSON output:
         if (!parsedParams.suggestedVoiceProfile) {
             parsedParams.suggestedVoiceProfile = 'default';
         }
+        // Validate voice profile against our defined types, default if invalid
+        const validVoiceProfiles: VoiceProfile[] = ['calm_female_gentle', 'soothing_male_deep', 'clear_female_neutral', 'warm_male_reassuring', 'default'];
+        if (!validVoiceProfiles.includes(parsedParams.suggestedVoiceProfile)) {
+            console.warn(`LLM suggested an invalid voice profile: ${parsedParams.suggestedVoiceProfile}. Defaulting.`);
+            parsedParams.suggestedVoiceProfile = 'default';
+        }
+
         parsedParams.rawResponse = content;
         return parsedParams;
       } catch (e) {
