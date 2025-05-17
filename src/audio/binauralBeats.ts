@@ -6,7 +6,7 @@ export class BinauralBeatPlayer {
   private rightPanner: StereoPannerNode | null = null;
   private masterGain: GainNode | null = null;
   public isPlaying: boolean = false;
-  private targetVolume: number = 0.5; // Default, will be set by setup
+  private targetVolume: number = 0.2; // Default, will be set by setup
 
   constructor(audioContext: AudioContext) {
     this.audioContext = audioContext;
