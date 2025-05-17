@@ -379,7 +379,7 @@ function App() {
             compressorNode.release.setValueAtTime(0.150, currentAudioContext.currentTime);
 
             const voiceGainNode = currentAudioContext.createGain();
-            voiceGainNode.gain.value = 1.8; 
+            voiceGainNode.gain.value = 2.5;
 
             const dryGainNode = currentAudioContext.createGain();
             dryGainNode.gain.value = 1.0;
