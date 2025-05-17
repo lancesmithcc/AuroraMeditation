@@ -143,7 +143,7 @@ export async function generateMeditationScript(theme: string, originalUserIntent
 You are an expert meditation scriptwriter.
 Your task is to generate a calming guided meditation script. This script must be deeply rooted in the provided "Theme from user's intention" AND the "Original User Intention".
 The goal is to make the user feel heard by explicitly incorporating and expanding upon the keywords and sentiments from the theme, AND by echoing any particularly relevant or poignant words/phrases from the "Original User Intention" if they add depth or personalization.
-The script should be approximately 2500-3000 words, suitable for a meditation session of around 20-25 minutes, considering a calm speaking pace with pauses.
+The script should be approximately 3500-4000 words, suitable for a meditation session of around 20-25 minutes, considering a calm speaking pace with pauses.
 It should have a clear beginning (e.g., settling in, focusing on breath), middle (exploring the theme, visualization, deepening relaxation related to the theme and original intention), and end (e.g., gentle return to awareness, carrying the theme's positive aspects forward).
 
 CRITICAL INSTRUCTIONS FOR PACING AND TONE:
