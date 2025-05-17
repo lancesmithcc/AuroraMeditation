@@ -42,7 +42,7 @@ export async function synthesizeSpeech(
       },
       body: JSON.stringify({
         text: text,
-        model_id: 'eleven_multilingual_v2', // Or another model like eleven_monolingual_v1
+        model_id: 'eleven_turbo_v2.5', // Switched from eleven_multilingual_v2 for better economy
         voice_settings: {
           stability: 0.55, // Slightly more stability for consistent tone
           similarity_boost: 0.70, // Keep similarity reasonable
