@@ -9,6 +9,9 @@ import { WhiteNoisePlayer } from './audio/whiteNoise'
 import { analyzeIntention, IntentionAnalysisParameters, generateMeditationScript, VoiceProfile } from './lib/deepseekApi'
 import { synthesizeSpeech, getVoiceIdFromProfile } from './lib/elevenLabsApi'
 
+// Placeholder for MP3 Encoder library (e.g., lamejs)
+// import lamejs from 'lamejs'; // You would typically install and import this
+
 const acutonicsFrequencyDetails: Record<number, { name: string; association: string; symbol: string }> = {
   136.10: { name: "Ohm", association: "Earth - Grounding & Stability", symbol: "♁" },
   210.42: { name: "New Moon", association: "Moon - Intuition & New Cycles", symbol: "☽" },
@@ -31,7 +34,19 @@ const getBinauralState = (freq: number): { state: string; emoji: string } => {
   return { state: "Gamma - Peak Awareness, Insight", emoji: "🚀" };
 };
 
-function createReverbImpulseResponse(audioContext: AudioContext, duration: number = 1.5, decay: number = 2.0): AudioBuffer {
+// --- Voice Processing Constants ---
+const VOICE_PLAYBACK_RATE = 0.85;
+const VOICE_EQ_SETTINGS = { type: 'highshelf' as BiquadFilterType, frequency: 3500, gain: 2.5 };
+const VOICE_COMPRESSOR_SETTINGS = { threshold: -20, knee: 25, ratio: 6, attack: 0.005, release: 0.150 };
+const VOICE_GAIN_VALUE = 2.5;
+const VOICE_DRY_GAIN_VALUE = 1.0;
+const VOICE_REVERB_IMPULSE_DURATION = 1.5;
+const VOICE_REVERB_IMPULSE_DECAY = 2.0;
+const VOICE_REVERB_GAIN_VALUE = 0.35;
+const BINAURAL_VOLUME = 0.18;
+// --- End Voice Processing Constants ---
+
+function createReverbImpulseResponse(audioContext: AudioContext | OfflineAudioContext, duration: number = VOICE_REVERB_IMPULSE_DURATION, decay: number = VOICE_REVERB_IMPULSE_DECAY): AudioBuffer {
   const sampleRate = audioContext.sampleRate;
   const length = sampleRate * duration;
   const impulse = audioContext.createBuffer(2, length, sampleRate); 
@@ -76,6 +91,7 @@ function App() {
   const [chatMessages, setChatMessages] = useState<{ type: 'user' | 'system' | 'error', text: string, data?: any, voiceProfile?: VoiceProfile }[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const currentAnalysisParamsRef = useRef<IntentionAnalysisParameters | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !audioContext) {
@@ -235,6 +251,7 @@ function App() {
         setIsAnalyzing(false);
         return;
       }
+      currentAnalysisParamsRef.current = analysisParams; // Store for download
 
       const voiceProfileToDisplay = (analysisParams.suggestedVoiceProfile || 'default')
         .replace(/_/g, ' ')
@@ -364,36 +381,36 @@ function App() {
 
             const newSource = currentAudioContext.createBufferSource();
             newSource.buffer = decodedAudio;
-            newSource.playbackRate.value = 0.85; 
+            newSource.playbackRate.value = VOICE_PLAYBACK_RATE; 
 
             const eqNode = currentAudioContext.createBiquadFilter();
-            eqNode.type = 'highshelf';
-            eqNode.frequency.setValueAtTime(3500, currentAudioContext.currentTime);
-            eqNode.gain.setValueAtTime(2.5, currentAudioContext.currentTime); 
+            eqNode.type = VOICE_EQ_SETTINGS.type;
+            eqNode.frequency.setValueAtTime(VOICE_EQ_SETTINGS.frequency, currentAudioContext.currentTime);
+            eqNode.gain.setValueAtTime(VOICE_EQ_SETTINGS.gain, currentAudioContext.currentTime); 
 
             const compressorNode = currentAudioContext.createDynamicsCompressor();
-            compressorNode.threshold.setValueAtTime(-20, currentAudioContext.currentTime);
-            compressorNode.knee.setValueAtTime(25, currentAudioContext.currentTime);
-            compressorNode.ratio.setValueAtTime(6, currentAudioContext.currentTime);
-            compressorNode.attack.setValueAtTime(0.005, currentAudioContext.currentTime);
-            compressorNode.release.setValueAtTime(0.150, currentAudioContext.currentTime);
+            compressorNode.threshold.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.threshold, currentAudioContext.currentTime);
+            compressorNode.knee.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.knee, currentAudioContext.currentTime);
+            compressorNode.ratio.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.ratio, currentAudioContext.currentTime);
+            compressorNode.attack.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.attack, currentAudioContext.currentTime);
+            compressorNode.release.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.release, currentAudioContext.currentTime);
 
             const voiceGainNode = currentAudioContext.createGain();
-            voiceGainNode.gain.value = 2.5;
+            voiceGainNode.gain.value = VOICE_GAIN_VALUE;
 
             const dryGainNode = currentAudioContext.createGain();
-            dryGainNode.gain.value = 1.0;
+            dryGainNode.gain.value = VOICE_DRY_GAIN_VALUE;
 
             const reverbNode = currentAudioContext.createConvolver();
             try {
-              reverbNode.buffer = createReverbImpulseResponse(currentAudioContext, 1.5, 2.0);
+              reverbNode.buffer = createReverbImpulseResponse(currentAudioContext);
             } catch (e) {
               console.error("Failed to create or set reverb impulse response:", e);
               setChatMessages(prev => [...prev, {type: 'error', text: "Failed to create reverb effect."}]);
             }
 
             const reverbGainNode = currentAudioContext.createGain();
-            reverbGainNode.gain.value = 0.35;
+            reverbGainNode.gain.value = VOICE_REVERB_GAIN_VALUE;
 
             newSource.connect(eqNode);
             eqNode.connect(compressorNode);
@@ -495,56 +512,351 @@ function App() {
     }
   };
 
-  const handleDownloadMeditation = () => {
+  // --- WAV Encoding Utility ---
+  function audioBufferToWav(buffer: AudioBuffer): Blob {
+    const numOfChan = buffer.numberOfChannels;
+    const Resample = false; // Not resampling for now
+    const newSampleRate = Resample ? 44100 : buffer.sampleRate;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const wavBuffer = new ArrayBuffer(length);
+    const view = new DataView(wavBuffer);
+    const channels: Float32Array[] = [];
+    let i, sample;
+    let offset = 0;
+    let pos = 0;
+
+    // Check if numberOfChannels is defined and greater than 0
+    if (numOfChan === 0) {
+      console.error("AudioBuffer has zero channels.");
+      // Return a small, empty WAV blob or throw an error
+      return new Blob([new ArrayBuffer(44)], { type: 'audio/wav' }); 
+    }
+
+    // write WAVE header
+    setUint32(0x46464952); // "RIFF"
+    setUint32(length - 8); // file length - 8
+    setUint32(0x45564157); // "WAVE"
+
+    setUint32(0x20746d66); // "fmt " chunk
+    setUint32(16); // length = 16
+    setUint16(1); // PCM (uncompressed)
+    setUint16(numOfChan);
+    setUint32(newSampleRate);
+    setUint32(newSampleRate * 2 * numOfChan); // avg. bytes/sec
+    setUint16(numOfChan * 2); // block-align
+    setUint16(16); // 16-bit (hardcoded in this version)
+
+    setUint32(0x61746164); // "data" - chunk
+    setUint32(length - pos); // chunk length
+
+    function setUint16(data: number) {
+      view.setUint16(pos, data, true);
+      pos += 2;
+    }
+
+    function setUint32(data: number) {
+      view.setUint32(pos, data, true);
+      pos += 4;
+    }
+
+    // write interleaved data
+    for (i = 0; i < numOfChan; i++) {
+      channels.push(buffer.getChannelData(i));
+    }
+
+    while (pos < length) {
+      for (i = 0; i < numOfChan; i++) {
+        // interleave channels
+        sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
+        sample = (sample < 0 ? sample * 0x8000 : sample * 0x7fff) | 0; // scale to 16-bit signed int
+        view.setInt16(pos, sample, true);
+        pos += 2;
+      }
+      offset++;
+    }
+    return new Blob([view], { type: 'audio/wav' });
+  }
+  // --- End WAV Encoding Utility ---
+
+  // --- MP3 Encoding Utility (using placeholder for lamejs) ---
+  async function audioBufferToMp3(audioBuffer: AudioBuffer, onProgress?: (progress: number) => void): Promise<Blob> {
+    const lame = (window as any).lamejs; // Access lamejs if loaded globally, or handle import properly
+    if (!lame || !lame.Mp3Encoder) {
+      console.error("MP3 Encoder (lamejs) not available. Falling back to WAV.");
+      // Fallback or throw error if not critical - for now, let's assume it should be available
+      // or the user would be informed to use WAV.
+      // For this example, let's throw to make it clear it's a dependency issue for the implementer.
+      throw new Error("MP3 Encoder (lamejs) is not loaded. Please ensure it is properly installed and imported.");
+    }
+
+    const mp3encoder = new lame.Mp3Encoder(audioBuffer.numberOfChannels, audioBuffer.sampleRate, 128); // 128kbps
+    const samplesLeft = audioBuffer.getChannelData(0); // Float32Array
+    let samplesRight: Float32Array | null = null;
+    if (audioBuffer.numberOfChannels === 2) {
+      samplesRight = audioBuffer.getChannelData(1); // Float32Array
+    }
+
+    const sampleBlockSize = 1152; // Standard block size for MP3 encoding
+    const mp3Data: Int8Array[] = [];
+
+    const floatTo16BitPCM = (input: Float32Array): Int16Array => {
+      const output = new Int16Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const s = Math.max(-1, Math.min(1, input[i]));
+        output[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      }
+      return output;
+    };
+
+    const samplesLeft16 = floatTo16BitPCM(samplesLeft);
+    const samplesRight16 = samplesRight ? floatTo16BitPCM(samplesRight) : null;
+
+    let currentPosition = 0;
+    const totalSamples = samplesLeft16.length;
+
+    while (currentPosition < totalSamples) {
+      const leftChunk = samplesLeft16.subarray(currentPosition, currentPosition + sampleBlockSize);
+      let rightChunk: Int16Array | null = null;
+      if (samplesRight16) {
+        rightChunk = samplesRight16.subarray(currentPosition, currentPosition + sampleBlockSize);
+      }
+
+      let mp3buf: Int8Array;
+      if (audioBuffer.numberOfChannels === 1 && leftChunk) {
+          mp3buf = mp3encoder.encodeBuffer(leftChunk);
+      } else if (audioBuffer.numberOfChannels === 2 && leftChunk && rightChunk) {
+          mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+      } else {
+          break; // Should not happen if channels are 1 or 2
+      }
+      
+      if (mp3buf.length > 0) {
+        mp3Data.push(mp3buf);
+      }
+      currentPosition += sampleBlockSize;
+      if (onProgress) {
+        onProgress(Math.min(1, currentPosition / totalSamples));
+      }
+    }
+
+    const mp3buf = mp3encoder.flush();
+    if (mp3buf.length > 0) {
+      mp3Data.push(mp3buf);
+    }
+
+    return new Blob(mp3Data, { type: 'audio/mpeg' });
+  }
+  // --- End MP3 Encoding Utility ---
+
+
+  // --- Full Audio Mix Rendering Function ---
+  async function renderFullAudioMix(
+    rawMeditationArrayBuffer: ArrayBuffer,
+    mainAudioContextSampleRate: number,
+    currentAnalysisParams: IntentionAnalysisParameters | null
+  ): Promise<AudioBuffer | null> {
+    if (!currentAnalysisParams) {
+      console.error("Cannot render audio mix: analysisParams are missing.");
+      return null;
+    }
+    
+    try {
+      // 1. Decode the raw meditation audio & calculate duration
+      // Temporary context to decode, as OfflineAudioContext cannot decode directly it seems
+      const tempCtx = new AudioContext({ sampleRate: mainAudioContextSampleRate });
+      const decodedVoice = await tempCtx.decodeAudioData(rawMeditationArrayBuffer.slice(0));
+      await tempCtx.close(); // Close temporary context
+
+      const targetDuration = decodedVoice.duration / VOICE_PLAYBACK_RATE;
+      const offlineCtx = new OfflineAudioContext(2, Math.ceil(mainAudioContextSampleRate * targetDuration), mainAudioContextSampleRate);
+
+      // 2. Setup Meditation Voice Chain
+      const voiceSource = offlineCtx.createBufferSource();
+      voiceSource.buffer = decodedVoice;
+      voiceSource.playbackRate.value = VOICE_PLAYBACK_RATE;
+
+      const eqNode = offlineCtx.createBiquadFilter();
+      eqNode.type = VOICE_EQ_SETTINGS.type;
+      eqNode.frequency.setValueAtTime(VOICE_EQ_SETTINGS.frequency, 0);
+      eqNode.gain.setValueAtTime(VOICE_EQ_SETTINGS.gain, 0);
+
+      const compressorNode = offlineCtx.createDynamicsCompressor();
+      compressorNode.threshold.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.threshold, 0);
+      compressorNode.knee.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.knee, 0);
+      compressorNode.ratio.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.ratio, 0);
+      compressorNode.attack.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.attack, 0);
+      compressorNode.release.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.release, 0);
+
+      const voiceGainNode = offlineCtx.createGain();
+      voiceGainNode.gain.value = VOICE_GAIN_VALUE;
+
+      const dryGainNode = offlineCtx.createGain();
+      dryGainNode.gain.value = VOICE_DRY_GAIN_VALUE;
+
+      const reverbNode = offlineCtx.createConvolver();
+      try {
+        reverbNode.buffer = createReverbImpulseResponse(offlineCtx);
+      } catch (e) {
+        console.error("Failed to create reverb for offline render:", e);
+        // Continue without reverb if it fails
+      }
+
+      const reverbGainNode = offlineCtx.createGain();
+      reverbGainNode.gain.value = VOICE_REVERB_GAIN_VALUE;
+
+      voiceSource.connect(eqNode).connect(compressorNode).connect(voiceGainNode);
+      voiceGainNode.connect(dryGainNode).connect(offlineCtx.destination);
+      if (reverbNode.buffer) {
+        voiceGainNode.connect(reverbNode).connect(reverbGainNode).connect(offlineCtx.destination);
+      }
+
+      // 3. Setup Binaural Beats (if active)
+      if (currentAnalysisParams.binauralBeatFrequency > 0) {
+        const baseFreq = currentAnalysisParams.acutonicsFrequency;
+        const beatFreq = currentAnalysisParams.binauralBeatFrequency;
+        const leftFrequency = baseFreq - beatFreq / 2;
+        const rightFrequency = baseFreq + beatFreq / 2;
+
+        const masterGainBinaural = offlineCtx.createGain();
+        masterGainBinaural.gain.value = BINAURAL_VOLUME;
+        masterGainBinaural.connect(offlineCtx.destination);
+
+        const leftOscillator = offlineCtx.createOscillator();
+        leftOscillator.type = 'sine';
+        leftOscillator.frequency.setValueAtTime(leftFrequency, 0);
+        const leftPanner = offlineCtx.createStereoPanner();
+        leftPanner.pan.setValueAtTime(-1, 0);
+        leftOscillator.connect(leftPanner).connect(masterGainBinaural);
+        leftOscillator.start(0);
+
+        const rightOscillator = offlineCtx.createOscillator();
+        rightOscillator.type = 'sine';
+        rightOscillator.frequency.setValueAtTime(rightFrequency, 0);
+        const rightPanner = offlineCtx.createStereoPanner();
+        rightPanner.pan.setValueAtTime(1, 0);
+        rightOscillator.connect(rightPanner).connect(masterGainBinaural);
+        rightOscillator.start(0);
+      }
+
+      // 4. Setup Ambient Noise (if active)
+      if (currentAnalysisParams.ambientNoiseType !== 'none') {
+        const noiseBufferSize = 2 * offlineCtx.sampleRate; // 2 seconds of noise
+        const noiseBufferOffline = offlineCtx.createBuffer(1, noiseBufferSize, offlineCtx.sampleRate);
+        const output = noiseBufferOffline.getChannelData(0);
+        for (let i = 0; i < noiseBufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        const noiseSource = offlineCtx.createBufferSource();
+        noiseSource.buffer = noiseBufferOffline;
+        noiseSource.loop = true;
+
+        let filterType: BiquadFilterType = 'lowpass';
+        let filterFreq = 20000;
+        let noiseVolume = 0.03;
+        if (currentAnalysisParams.ambientNoiseType === 'pink') { filterType = 'lowshelf'; filterFreq = 800; }
+        else if (currentAnalysisParams.ambientNoiseType === 'brown') { filterType = 'lowpass'; filterFreq = 500; }
+        if (filterFreq > 800) {
+          const reductionFactor = Math.min(0.02, (filterFreq - 800) / 20000 * 0.02);
+          noiseVolume = Math.max(0.01, noiseVolume - reductionFactor);
+        }
+
+        const noiseGain = offlineCtx.createGain();
+        noiseGain.gain.value = noiseVolume;
+
+        const noiseFilter = offlineCtx.createBiquadFilter();
+        noiseFilter.type = filterType;
+        noiseFilter.frequency.setValueAtTime(filterFreq, 0);
+        noiseFilter.Q.setValueAtTime(1, 0);
+
+        noiseSource.connect(noiseGain).connect(noiseFilter).connect(offlineCtx.destination);
+        noiseSource.start(0);
+      }
+
+      // 5. Start voice and rendering
+      voiceSource.start(0);
+      return await offlineCtx.startRendering();
+
+    } catch (error) {
+      console.error("Error rendering full audio mix:", error);
+      return null;
+    }
+  }
+  // --- End Full Audio Mix Rendering Function ---
+
+
+  const handleDownloadMeditation = async () => {
     if (!currentMeditationAudio || !currentMeditationAudio.buffer || !(currentMeditationAudio.buffer instanceof ArrayBuffer) || currentMeditationAudio.buffer.byteLength === 0) {
       setChatMessages(prev => [...prev, {type: 'error', text: "No meditation audio available, buffer is invalid, or audio is empty."}]);
       console.error("Download failed: No audio buffer, buffer is not ArrayBuffer, or buffer is empty.", currentMeditationAudio);
       return;
     }
+    if (!audioContext) {
+      setChatMessages(prev => [...prev, {type: 'error', text: "Audio context not available for rendering."}]);
+      return;
+    }
+
+    setChatMessages(prev => [...prev, {type: 'system', text: "Preparing full audio mix for download (MP3 format)... This may take a few moments."}]);
 
     try {
-      console.log("Attempting download. Audio buffer byte length:", currentMeditationAudio.buffer.byteLength);
-      const blob = new Blob([currentMeditationAudio.buffer], { type: 'audio/mpeg' });
-      console.log("Blob created. Size:", blob.size, "Type:", blob.type);
+      const renderedAudioBuffer = await renderFullAudioMix(
+        currentMeditationAudio.buffer, 
+        audioContext.sampleRate, 
+        currentAnalysisParamsRef.current
+      );
 
-      if (blob.size === 0) {
-          setChatMessages(prev => [...prev, {type: 'error', text: "Cannot download empty audio file (blob size is 0)."}]);
-          console.error("Download failed: Blob size is 0.");
-          return;
+      if (!renderedAudioBuffer) {
+        setChatMessages(prev => [...prev, {type: 'error', text: "Failed to render the full audio mix for download."}]);
+        return;
       }
 
-      const url = URL.createObjectURL(blob);
-      console.log("Object URL created:", url);
+      console.log("Offline rendering complete. Channels:", renderedAudioBuffer.numberOfChannels, "Length:", renderedAudioBuffer.length, "Sample Rate:", renderedAudioBuffer.sampleRate);
 
+      if (renderedAudioBuffer.numberOfChannels === 0 || renderedAudioBuffer.length === 0) {
+        setChatMessages(prev => [...prev, { type: 'error', text: "Rendered audio is empty or has no channels. Cannot download." }]);
+        console.error("Download failed: Rendered AudioBuffer is empty or has no channels.");
+        return;
+      }
+
+      setChatMessages(prev => [...prev, { type: 'system', text: "Rendering complete. Now encoding to MP3... This can be slow."}]);
+      const mp3Blob = await audioBufferToMp3(renderedAudioBuffer, (progress) => {
+        // Optional: Update progress in UI if needed, e.g., for very long files
+        // console.log(`MP3 Encoding progress: ${Math.round(progress * 100)}%`);
+      });
+      console.log("MP3 Blob created. Size:", mp3Blob.size, "Type:", mp3Blob.type);
+
+      if (mp3Blob.size === 0) {
+        setChatMessages(prev => [...prev, {type: 'error', text: "Cannot download empty audio file (MP3 blob size is 0)."}]);
+        console.error("Download failed: MP3 Blob size is 0.");
+        return;
+      }
+
+      const url = URL.createObjectURL(mp3Blob);
       const a = document.createElement('a');
       document.body.appendChild(a); 
       a.style.display = 'none';
       a.href = url;
       
-      const themeSanitized = (currentMeditationAudio.theme || "untitled").replace(/[^a-z0-9_.-]/gi, '_').toLowerCase();
+      const themeSanitized = (currentMeditationAudio.theme || "mixed_meditation").replace(/[^a-z0-9_.-]/gi, '_').toLowerCase();
       const voiceSanitized = (currentMeditationAudio.voiceProfile || "default").replace(/[^a-z0-9_.-]/gi, '_').toLowerCase();
       const dateString = new Date().toISOString().slice(0, 10);
-      a.download = `AuraMind_Meditation_${themeSanitized}_${voiceSanitized}_${dateString}.mp3`;
-      console.log("Download filename:", a.download);
+      a.download = `AuraMind_FullMix_${themeSanitized}_${voiceSanitized}_${dateString}.mp3`; // Changed to .mp3
       
       a.click();
-      console.log("Download click triggered.");
       
-      setChatMessages(prev => [...prev, {type: 'system', text: "Meditation audio download initiated. If the download doesn't start, try opening the app in a regular browser tab instead of a preview window."}]);
+      setChatMessages(prev => [...prev, {type: 'system', text: "Full audio mix MP3 download initiated."}]);
 
       setTimeout(() => {
         URL.revokeObjectURL(url);
-        console.log("Object URL revoked.");
         if (a.parentNode) {
             a.remove();
-            console.log("Anchor element removed.");
         }
       }, 150); 
 
     } catch (error) {
-      console.error("Error preparing download:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error during download.";
-      setChatMessages(prev => [...prev, {type: 'error', text: `Could not prepare audio for download: ${errorMessage}`}]);
+      console.error("Error preparing full audio mix download:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error during download preparation.";
+      setChatMessages(prev => [...prev, {type: 'error', text: `Could not prepare full audio for download: ${errorMessage}`}]);
     }
   };
 
