@@ -2,8 +2,8 @@ import './App.css'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Brain, MessageSquare, Send, Settings, Headphones, Waves, Zap, Loader2, Mic, UserCircle, Sparkles, Download } from "lucide-react"
-import React, { useState, useRef, useEffect } from 'react'
+import { Brain, MessageSquare, Send, Headphones, Waves, Zap, Loader2, Mic, UserCircle, Sparkles, Download } from "lucide-react"
+import { useState, useRef, useEffect } from 'react'
 import { BinauralBeatPlayer } from './audio/binauralBeats'
 import { WhiteNoisePlayer } from './audio/whiteNoise'
 import { analyzeIntention, IntentionAnalysisParameters, generateMeditationScript, VoiceProfile } from './lib/deepseekApi'
