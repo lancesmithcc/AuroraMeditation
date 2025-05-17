@@ -512,72 +512,6 @@ function App() {
     }
   };
 
-  // --- WAV Encoding Utility ---
-  function audioBufferToWav(buffer: AudioBuffer): Blob {
-    const numOfChan = buffer.numberOfChannels;
-    const Resample = false; // Not resampling for now
-    const newSampleRate = Resample ? 44100 : buffer.sampleRate;
-    const length = buffer.length * numOfChan * 2 + 44;
-    const wavBuffer = new ArrayBuffer(length);
-    const view = new DataView(wavBuffer);
-    const channels: Float32Array[] = [];
-    let i, sample;
-    let offset = 0;
-    let pos = 0;
-
-    // Check if numberOfChannels is defined and greater than 0
-    if (numOfChan === 0) {
-      console.error("AudioBuffer has zero channels.");
-      // Return a small, empty WAV blob or throw an error
-      return new Blob([new ArrayBuffer(44)], { type: 'audio/wav' }); 
-    }
-
-    // write WAVE header
-    setUint32(0x46464952); // "RIFF"
-    setUint32(length - 8); // file length - 8
-    setUint32(0x45564157); // "WAVE"
-
-    setUint32(0x20746d66); // "fmt " chunk
-    setUint32(16); // length = 16
-    setUint16(1); // PCM (uncompressed)
-    setUint16(numOfChan);
-    setUint32(newSampleRate);
-    setUint32(newSampleRate * 2 * numOfChan); // avg. bytes/sec
-    setUint16(numOfChan * 2); // block-align
-    setUint16(16); // 16-bit (hardcoded in this version)
-
-    setUint32(0x61746164); // "data" - chunk
-    setUint32(length - pos); // chunk length
-
-    function setUint16(data: number) {
-      view.setUint16(pos, data, true);
-      pos += 2;
-    }
-
-    function setUint32(data: number) {
-      view.setUint32(pos, data, true);
-      pos += 4;
-    }
-
-    // write interleaved data
-    for (i = 0; i < numOfChan; i++) {
-      channels.push(buffer.getChannelData(i));
-    }
-
-    while (pos < length) {
-      for (i = 0; i < numOfChan; i++) {
-        // interleave channels
-        sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
-        sample = (sample < 0 ? sample * 0x8000 : sample * 0x7fff) | 0; // scale to 16-bit signed int
-        view.setInt16(pos, sample, true);
-        pos += 2;
-      }
-      offset++;
-    }
-    return new Blob([view], { type: 'audio/wav' });
-  }
-  // --- End WAV Encoding Utility ---
-
   // --- MP3 Encoding Utility (using placeholder for lamejs) ---
   async function audioBufferToMp3(audioBuffer: AudioBuffer, onProgress?: (progress: number) => void): Promise<Blob> {
     const lame = (window as any).lamejs; // Access lamejs if loaded globally, or handle import properly
@@ -819,9 +753,9 @@ function App() {
       }
 
       setChatMessages(prev => [...prev, { type: 'system', text: "Rendering complete. Now encoding to MP3... This can be slow."}]);
-      const mp3Blob = await audioBufferToMp3(renderedAudioBuffer, (progress) => {
+      const mp3Blob = await audioBufferToMp3(renderedAudioBuffer, (_progress) => {
         // Optional: Update progress in UI if needed, e.g., for very long files
-        // console.log(`MP3 Encoding progress: ${Math.round(progress * 100)}%`);
+        // console.log(`MP3 Encoding progress: ${Math.round(_progress * 100)}%`);
       });
       console.log("MP3 Blob created. Size:", mp3Blob.size, "Type:", mp3Blob.type);
 
