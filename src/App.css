@@ -196,3 +196,18 @@ body::after { /* Additional layer for more complex glow */
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--aurora-border-color) / 0.5) oklch(var(--aurora-element-bg) / 0.3);
 }
+
+/* Indigo Spiral Animation */
+@keyframes slow-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-slow-spin {
+  animation: slow-spin 60s linear infinite; /* Adjust duration for speed */
+  /* Ensure it's behind other aurora layers if needed by adjusting z-index or using a different value like -30 */
+}

@@ -511,7 +511,13 @@ function App() {
 
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen p-4 sm:p-6 md:p-8 selection:bg-[oklch(var(--aurora-border-color)/0.3)] selection:text-white">
+    <div className="flex flex-col items-center justify-between min-h-screen p-4 sm:p-6 md:p-8 selection:bg-[oklch(var(--aurora-border-color)/0.3)] selection:text-white relative isolate">
+      {/* Indigo Spiral Background Layer */}
+      <div aria-hidden="true" className="fixed inset-0 -z-20 animate-slow-spin">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-indigo-500/30 rounded-full blur-[100px]" />
+        {/* A simple large blurred circle can act as a very subtle spiral base or part of a more complex one */}
+        {/* More complex spiral might involve SVG or multiple elements/pseudo-elements here */}
+      </div>
       <header className="w-full max-w-2xl mb-8 text-center">
         <h1 className="text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[oklch(0.7_0.2_250)] via-[oklch(0.7_0.2_280)] to-[oklch(0.7_0.2_310)] py-2">
           Aurora Meditation Generator
