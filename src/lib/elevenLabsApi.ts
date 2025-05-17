@@ -15,8 +15,8 @@ const voiceProfileToIdMap: Record<VoiceProfile, string> = {
 };
 
 export function getVoiceIdFromProfile(profile?: VoiceProfile): string {
-  return 'pjcYQlDFKMbcOUp6F5GD'; // Rachel (pre-made) - FOR TESTING
-  // return voiceProfileToIdMap[profile || 'default'] || voiceProfileToIdMap['default'];
+  // return 'pjcYQlDFKMbcOUp6F5GD'; // Britney (pre-made) - FOR TESTING
+  return voiceProfileToIdMap[profile || 'default'] || voiceProfileToIdMap['default'];
 }
 
 export async function synthesizeSpeech(
