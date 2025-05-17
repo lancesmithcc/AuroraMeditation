@@ -514,11 +514,9 @@ function App() {
     <div className="flex flex-col items-center justify-between min-h-screen p-4 sm:p-6 md:p-8 selection:bg-[oklch(var(--aurora-border-color)/0.3)] selection:text-white">
       <header className="w-full max-w-2xl mb-8 text-center">
         <h1 className="text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[oklch(0.7_0.2_250)] via-[oklch(0.7_0.2_280)] to-[oklch(0.7_0.2_310)] py-2">
-          AuraMind Generator
+          Aurora Meditation Generator
         </h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Tell me your intention, and I'll craft a unique audio experience for you.
-        </p>
+        
       </header>
 
       <main className="w-full max-w-2xl flex-grow flex flex-col justify-center">
@@ -528,9 +526,7 @@ function App() {
               <Brain className="w-10 h-10" style={{color: "var(--aurora-border-color)"}}/>
               <CardTitle className="text-3xl">What is your intention?</CardTitle>
             </div>
-            <CardDescription className="text-base pt-1">
-              e.g., "I want to relax", "Help me focus", "I need to sleep better"
-            </CardDescription>
+            
           </CardHeader>
           <CardContent ref={chatContainerRef} className="p-4 sm:p-6 flex-grow overflow-y-auto space-y-3 bg-[oklch(var(--aurora-element-bg)/0.3)] rounded-b-xl_minus_1_border_hack">
             {chatMessages.map((msg, index) => (
@@ -554,7 +550,7 @@ function App() {
              {chatMessages.length === 0 && (
                 <div className="text-center text-muted-foreground/70 pt-10">
                     <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    Your conversation will appear here.
+                     
                 </div>
             )}
           </CardContent>
@@ -579,9 +575,7 @@ function App() {
                 {isAnalyzing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-3 text-center">
-              Press Enter or click the send button to submit.
-            </p>
+            
           </div>
         </Card>
         

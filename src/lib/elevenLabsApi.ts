@@ -6,12 +6,12 @@ const ELEVENLABS_API_URL_BASE = 'https://api.elevenlabs.io/v1/text-to-speech';
 // You can find voice IDs in your ElevenLabs voice lab or use pre-made ones.
 // Pre-made voices: https://elevenlabs.io/docs/api-reference/premade-voices
 const voiceProfileToIdMap: Record<VoiceProfile, string> = {
-  'calm_female_gentle': 'MF3mGyEYCl7XYWbV9V6O', // Elli (calm, soothing)
+  'calm_female_gentle': 'pjcYQlDFKMbcOUp6F5GD', // Britney (calm, soothing)
   'soothing_male_deep': 'pNInz6obpgDQGcFmaJgB', // Adam (deep, soothing)
-  'clear_female_neutral': '21m00Tcm4TlvDq8ikWAM', // Rachel (clear, professional - also default)
-  'warm_male_reassuring': 'ErXwobaYiN019PkySvjV', // Antoni (Soothing and Relaxing - replacing Giovanni)
+  'clear_female_neutral': 'Qggl4b0xRMiqOwhPtVWT', // my calm gal
+  'warm_male_reassuring': 'IsEXLHzSvLH9UMB6SLHj', // mellow matt
   // 'uplifting_female_bright': 'jsCqWAovK2LkecY7zXl4', // Mimi (can be energetic) - currently commented out
-  'default': '21m00Tcm4TlvDq8ikWAM' // Rachel
+  'default': 'pjcYQlDFKMbcOUp6F5GD' // Britney
 };
 
 export function getVoiceIdFromProfile(profile?: VoiceProfile): string {
