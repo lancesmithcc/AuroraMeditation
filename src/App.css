@@ -6,7 +6,7 @@
 
 :root {
   --background: 260 20% 5%; /* Deep indigo/purple */
-  --foreground: 250 0% 0%; /* black */
+  --foreground: 250 20% 95%; /* Light lavender/off-white */
 
   --card: 260 20% 8%; /* Slightly lighter than background */
   --card-foreground: var(--foreground);
@@ -40,8 +40,8 @@
   --aurora-bg-mid: oklch(10% 0.04 280);   /* Deeper purple */
   --aurora-bg-end: oklch(5% 0.03 300);    /* Very dark magenta-purple */
   
-  --aurora-glow-start: oklch(30% 0.1 250 / 0.5); /* Brighter blue-purple glow */
-  --aurora-glow-mid: oklch(25% 0.1 280 / 0.4);   /* Purple glow */
+  --aurora-glow-start: oklch(250% 0 0 / 0.5); /* blacker */
+  --aurora-glow-mid: oklch(264% 96 23 / 0.4);   /* Purple glow */
   --aurora-glow-end: oklch(20% 0.1 310 / 0.3);   /* Magenta glow */
 
   --aurora-border-color: oklch(60% 0.15 280); /* A contrasting, yet harmonious border color */
