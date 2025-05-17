@@ -113,8 +113,6 @@ body::after { /* Additional layer for more complex glow */
 
 .aurora-ui-element {
   background:none
-  box-shadow: 0 8px 32px 0 oklch(var(--aurora-bg-start) / 0.37);
-  transition: all 0.3s ease;
 }
 
 .aurora-ui-element:hover {
