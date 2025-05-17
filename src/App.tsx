@@ -1,6 +1,6 @@
 import './App.css'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Brain, MessageSquare, Send, Headphones, Waves, Zap, Loader2, Mic, UserCircle, Sparkles, Download } from "lucide-react"
 import { useState, useRef, useEffect } from 'react'
