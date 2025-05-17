@@ -1,4 +1,3 @@
-```markdown
 # Binaural Beats and Guided Meditation Generator - Tasks
 
 ## Phase 1: Core Setup & UI Foundation
@@ -47,7 +46,7 @@
     - [x] Use parameters from Deepseek to configure and play Ambient Noise.
         - [x] Map `analysisParams.ambientNoiseType` to `WhiteNoisePlayer` settings.
         - [x] Use `analysisParams.acutonicsFrequency` to anchor/filter noise.
-- [ ] **Audio Playback Controls**
+- [x] **Audio Playback Controls**
     - [x] Play/Pause/Stop functionality for generated audio (individual players and meditation audio now have stop logic).
     - [ ] Master volume control (optional).
 
@@ -63,7 +62,7 @@
     - [x] Handle API responses and errors.
 - [x] **Meditation Playback & Download**
     - [x] Integrate generated speech into the audio player.
-    - [ ] Implement download functionality for the audio file (optional).
+    - [x] Implement download functionality for the audio file.
 
 ## Phase 4: UI/UX Refinement & Polish
 
@@ -77,7 +76,22 @@
     - [x] Basic error handling for API calls (initial version done, expanded for new API calls).
     - [x] Gracefully handle API errors, audio generation issues, etc.
 
-## Phase 5: Testing & Deployment (Future)
+## Phase 5: Progressive Web App (PWA) Implementation
+
+- [x] **PWA Configuration**
+    - [x] Install and configure vite-plugin-pwa.
+    - [x] Create manifest file with appropriate settings.
+    - [x] Add PWA meta tags to index.html.
+- [x] **Icon Generation**
+    - [x] Create spiral-themed icons for various sizes (16x16 to 512x512).
+    - [x] Generate appropriate maskable icons.
+    - [x] Create Apple touch icon (180x180).
+- [x] **Offline Functionality**
+    - [x] Configure service worker for offline support.
+    - [x] Implement caching strategies for app assets.
+    - [x] Implement caching strategies for audio files and API responses.
+
+## Phase 6: Testing & Deployment (Future)
 
 - [ ] **Thorough Testing**
     - [ ] Test all functionalities across different browsers.

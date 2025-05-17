@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#bgGradient)"/>
+  
+  <!-- Main spiral -->
+  <g filter="url(#glow)">
+    <path d="M256 256 
+             M256 256 
+             C256 256, 195 250, 210 195
+             C225 140, 290 130, 320 170
+             C350 210, 330 280, 280 310
+             C230 340, 160 320, 130 270
+             C100 220, 120 150, 170 110
+             C220 70, 300 90, 340 140
+             C380 190, 360 270, 310 320
+             C260 370, 180 350, 130 300
+             C80 250, 100 170, 150 120
+             C200 70, 280 90, 330 140
+             C380 190, 360 270, 310 320
+             C260 370, 180 360, 130 310"
+          stroke="url(#spiralGradient)" stroke-width="18" stroke-linecap="round"/>
+  </g>
+
+  <!-- Small pulsing orbs at spiral endpoints -->
+  <circle cx="130" cy="310" r="15" fill="#ffffff" opacity="0.8">
+    <animate attributeName="opacity" values="0.4;0.8;0.4" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="12;18;12" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Subtle light rays -->
+  <g opacity="0.3">
+    <path d="M256 50 L256 462" stroke="white" stroke-width="2" opacity="0.2"/>
+    <path d="M50 256 L462 256" stroke="white" stroke-width="2" opacity="0.2"/>
+    <path d="M120 120 L392 392" stroke="white" stroke-width="2" opacity="0.2"/>
+    <path d="M392 120 L120 392" stroke="white" stroke-width="2" opacity="0.2"/>
+  </g>
+
+  <!-- Definitions -->
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10051c"/>
+      <stop offset="0.3" stop-color="#1a0d2b"/>
+      <stop offset="0.7" stop-color="#26154a"/>
+      <stop offset="1" stop-color="#1a0d2b"/>
+    </linearGradient>
+    
+    <!-- Spiral gradient -->
+    <linearGradient id="spiralGradient" x1="150" y1="150" x2="350" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9259f7"/>
+      <stop offset="0.5" stop-color="#b78eff"/>
+      <stop offset="1" stop-color="#6236c5"/>
+    </linearGradient>
+    
+    <!-- Glow effect -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+</svg> 

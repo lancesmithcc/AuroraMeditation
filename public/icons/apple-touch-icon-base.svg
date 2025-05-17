@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with more vibrant gradient for iOS -->
+  <circle cx="90" cy="90" r="90" fill="url(#bgGradient)"/>
+  
+  <!-- Outer ring for better visibility on iOS home screen -->
+  <circle cx="90" cy="90" r="85" stroke="url(#ringGradient)" stroke-width="2" fill="none" opacity="0.7"/>
+  
+  <!-- Enhanced spiral for Apple devices -->
+  <g filter="url(#glow)">
+    <path d="M90 90 
+             C90 90, 65 85, 70 60
+             C75 35, 105 30, 120 50
+             C135 70, 130 105, 105 125
+             C80 145, 45 140, 25 115
+             C5 90, 10 55, 35 35
+             C60 15, 95 20, 115 45
+             C135 70, 130 105, 105 125"
+          stroke="url(#spiralGradient)" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <!-- Central glow effect -->
+  <circle cx="90" cy="90" r="15" fill="url(#centerGlow)" opacity="0.8"/>
+
+  <!-- Definitions -->
+  <defs>
+    <!-- Background gradient optimized for iOS -->
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10051c"/>
+      <stop offset="0.5" stop-color="#1a0d2b"/>
+      <stop offset="1" stop-color="#26154a"/>
+    </linearGradient>
+    
+    <!-- Outer ring gradient -->
+    <linearGradient id="ringGradient" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b78eff"/>
+      <stop offset="1" stop-color="#6236c5"/>
+    </linearGradient>
+    
+    <!-- Spiral gradient with higher contrast -->
+    <linearGradient id="spiralGradient" x1="35" y1="35" x2="145" y2="145" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a575ff"/>
+      <stop offset="0.5" stop-color="#c9adff"/>
+      <stop offset="1" stop-color="#7040db"/>
+    </linearGradient>
+    
+    <!-- Central glow -->
+    <radialGradient id="centerGlow" cx="90" cy="90" r="15" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#b78eff" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Glow effect -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+</svg> 
