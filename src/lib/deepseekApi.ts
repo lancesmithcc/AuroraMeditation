@@ -122,9 +122,10 @@ export async function generateMeditationScript(theme: string): Promise<string | 
 
   const systemPrompt = `
 You are an expert meditation scriptwriter.
-Your task is to generate a calming guided meditation script based on the following theme, suitable for a 5-minute meditation session.
-The script should be approximately 1000-1500 words.
-It should have a clear beginning (e.g., settling in, focusing on breath), middle (exploring the theme, visualization, deepening relaxation), and end (e.g., gentle return to awareness, carrying peace forward).
+Your task is to generate a calming guided meditation script. This script must be deeply rooted in the provided "Theme from user's intention".
+The goal is to make the user feel heard by explicitly incorporating and expanding upon the keywords, sentiments, and goals captured in this theme.
+The script should be approximately 1000-1500 words, suitable for a meditation session of around 7-10 minutes, considering a calm speaking pace with pauses.
+It should have a clear beginning (e.g., settling in, focusing on breath), middle (exploring the theme, visualization, deepening relaxation related to the theme), and end (e.g., gentle return to awareness, carrying the theme's positive aspects forward).
 
 CRITICAL INSTRUCTIONS FOR PACING AND TONE:
 - Write in short, simple sentences.
@@ -132,15 +133,13 @@ CRITICAL INSTRUCTIONS FOR PACING AND TONE:
 - DO NOT use ellipses (...) or descriptive text like "(short pause)" or "(pause here)" to indicate pauses. ONLY use the <break time="Xs" /> tag.
 - The overall tone should be very calm, gentle, and encourage slow, intentional listening.
 - Avoid complex vocabulary or long, run-on sentences.
-- The language should be soothing and vivid.
+- The language should be soothing and vivid, directly relating to the theme.
 
-Focus primarily on the provided theme.
+CRITICAL: The meditation script MUST directly address and weave in the specifics of the theme throughout. It should feel as though it's responding directly to what the user expressed.
+Theme from user's intention: "${theme}"
+
+For example, if the theme is "finding peace amidst chaos and daily pressures", the script should use phrases like "Even when the world around you feels chaotic, acknowledge this pressure, and know you can find a center of peace within...", or "Gently turn your attention inward, away from the daily pressures, to that quiet, peaceful space that always resides in you..."
 Output only the script text itself. Do not include any other text, greetings, titles, or explanations like "Here is the script:". Just the pure script.
-
-Theme: "${theme}"
-
-Example of desired pacing and style using the correct pause tag:
-"Begin by finding a comfortable position. <break time="1s" /> Settle in. <break time="1.5s" /> Close your eyes gently. <break time="1s" /> Notice your breath. <break time="0.5s" /> Inhale deeply. <break time="1s" /> and exhale slowly. <break time="1.5s" /> Feel the tension leaving your body. <break time="1s" /> with each breath out. <break time="2s" />"
 `;
 
   try {

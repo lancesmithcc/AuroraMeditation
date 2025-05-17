@@ -7,7 +7,7 @@ const ELEVENLABS_API_URL_BASE = 'https://api.elevenlabs.io/v1/text-to-speech';
 // Pre-made voices: https://elevenlabs.io/docs/api-reference/premade-voices
 const voiceProfileToIdMap: Record<VoiceProfile, string> = {
   'calm_female_gentle': 'pjcYQlDFKMbcOUp6F5GD', // Britney (calm, soothing)
-  'soothing_male_deep': 'pNInz6obpgDQGcFmaJgB', // Adam (deep, soothing)
+  'soothing_male_deep': 'AeRdCCKzvd23BpJoofzx', // cool british guy (deep, soothing)
   'clear_female_neutral': 'Qggl4b0xRMiqOwhPtVWT', // my calm gal
   'warm_male_reassuring': 'IsEXLHzSvLH9UMB6SLHj', // mellow matt
   // 'uplifting_female_bright': 'jsCqWAovK2LkecY7zXl4', // Mimi (can be energetic) - currently commented out
