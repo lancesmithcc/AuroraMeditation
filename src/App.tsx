@@ -523,7 +523,7 @@ function App() {
         <Card className="aurora-ui-element shadow-2xl flex flex-col">
           <CardHeader className="text-center shrink-0">
             <div className="flex items-center justify-center space-x-3 mb-2">
-              <Brain className="w-10 h-10" style={{color: "var(--aurora-border-color)"}}/>
+              <Brain className="w-10 h-10" />
               <CardTitle className="text-3xl">What is your intention?</CardTitle>
             </div>
             
@@ -531,7 +531,7 @@ function App() {
           <CardContent ref={chatContainerRef} className="p-4 sm:p-6 flex-grow overflow-y-auto space-y-3 bg-[oklch(var(--aurora-element-bg)/0.3)] rounded-b-xl_minus_1_border_hack">
             {chatMessages.map((msg, index) => (
               <div key={index} className={`flex items-start ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                {msg.type !== 'user' && <div className="mr-2 mt-1 flex-shrink-0">{getMessageIcon(msg.type, msg.voiceProfile)}</div>}
+                
                 <div className={`max-w-[80%] p-3 rounded-xl text-sm shadow ${
                   msg.type === 'user' 
                     ? 'bg-[oklch(var(--aurora-accent-color)/0.8)] text-white rounded-br-none border border-[oklch(var(--aurora-accent-color))]' 
@@ -554,7 +554,7 @@ function App() {
                 </div>
             )}
           </CardContent>
-          <div className="p-4 sm:p-6 border-t border-[oklch(var(--aurora-border-color)/0.2)] shrink-0">
+          <div className="p-4 sm:p-6 shrink-0">
             <div className="flex items-center space-x-3">
               <Input 
                 id="intentionInput"
@@ -610,11 +610,9 @@ function App() {
 
       <footer className="w-full max-w-2xl mt-12 mb-6 text-center">
         <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} AuraMind Generator. All rights reserved.
+          &copy; {new Date().getFullYear()} Aurora Meditation Generator. All rights reserved.
         </p>
-        <p className="text-xs text-muted-foreground/70 mt-1">
-          Reminder: For API integration, ensure your keys in <code>.env</code> are named <code>VITE_DEEPSEEK_API_KEY</code> and <code>VITE_ELEVENLABS_API_KEY</code>.
-        </p>
+        
       </footer>
     </div>
   )
