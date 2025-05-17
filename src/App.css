@@ -35,18 +35,18 @@
 
   --radius: 33px; /* Global corner radius */
 
-  /* Custom Aurora Theme Colors */
-  --aurora-bg-start: oklch(15% 0.05 260); /* Dark blue-purple */
-  --aurora-bg-mid: oklch(10% 0.04 280);   /* Deeper purple */
-  --aurora-bg-end: oklch(5% 0.03 300);    /* Very dark magenta-purple */
+  /* Custom Aurora Theme Colors - Updated for darker/richer scheme */
+  --aurora-bg-start: oklch(8% 0.05 260); /* Dark blue-purple, darker than before */
+  --aurora-bg-mid: oklch(12% 0.12 250);   /* More saturated indigo with higher lightness */
+  --aurora-bg-end: oklch(10% 0.15 350);    /* More saturated deep coral with higher lightness */
   
-  --aurora-glow-start: oklch(250% 0 0 / 0.5); /* blacker */
-  --aurora-glow-mid: oklch(264% 96 23 / 0.4);   /* Purple glow */
-  --aurora-glow-end: oklch(20% 0.1 310 / 0.3);   /* Magenta glow */
+  --aurora-glow-start: oklch(100% 0 0 / 0.15); /* Black glow, reduced opacity slightly */
+  --aurora-glow-mid: oklch(50% 0.18 250 / 0.6);   /* Stronger indigo glow with higher opacity */
+  --aurora-glow-end: oklch(30% 0.18 350 / 0.7);   /* Stronger deep coral glow with much higher opacity */
 
   --aurora-border-color: oklch(60% 0.15 280); /* A contrasting, yet harmonious border color */
   --aurora-accent-color: oklch(70% 0.2 300); /* For highlights, like user chat bubbles */
-  --aurora-element-bg: oklch(12% 0.04 270); /* Background for elements like input cards */
+  --aurora-element-bg: transparent; /* Background for elements like input cards */
 }
 
 
@@ -67,12 +67,13 @@ body::before {
   width: 100%;
   height: 100%;
   z-index: -10; /* Adjusted z-index to be behind spiral if spiral is -5 */
-  background: radial-gradient(ellipse at 50% 0%, var(--aurora-bg-start) 0%, transparent 70%),
-              radial-gradient(ellipse at 0% 100%, var(--aurora-bg-end) 0%, transparent 70%),
-              radial-gradient(ellipse at 100% 100%, var(--aurora-bg-mid) 0%, transparent 70%),
-              var(--aurora-bg-mid); /* Base background */
-  animation: auroraShift 45s infinite linear, subtlePulse 15s infinite alternate;
-  opacity: 0.8; /* Initial opacity */
+  background: radial-gradient(ellipse at 25% 25%, var(--aurora-bg-mid) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, var(--aurora-bg-start) 0%, transparent 60%),
+              radial-gradient(ellipse at 10% 90%, var(--aurora-bg-end) 0%, transparent 55%),
+              radial-gradient(ellipse at 90% 80%, var(--aurora-bg-end) 0%, transparent 65%),
+              oklch(2% 0.01 0); /* Almost black base */
+  animation: auroraShift 30s infinite alternate ease-in-out;
+  opacity: 1; /* Full opacity */
 }
 
 body::after { /* Additional layer for more complex glow */
@@ -82,11 +83,11 @@ body::after { /* Additional layer for more complex glow */
   width: 200%; height: 200%;
   z-index: -15; /* Adjusted z-index */
   background: 
-    radial-gradient(circle at 20% 30%, var(--aurora-glow-start) 0%, transparent 30%),
-    radial-gradient(circle at 80% 70%, var(--aurora-glow-mid) 0%, transparent 35%),
-    radial-gradient(circle at 50% 50%, var(--aurora-glow-end) 0%, transparent 40%);
-  animation: auroraGlow 30s infinite alternate ease-in-out;
-  opacity: 0.6; /* Initial opacity for glows */
+    radial-gradient(circle at 30% 30%, var(--aurora-glow-mid) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, var(--aurora-glow-end) 0%, transparent 55%),
+    radial-gradient(circle at 20% 80%, var(--aurora-glow-end) 0%, transparent 50%);
+  animation: auroraGlow 25s infinite alternate ease-in-out;
+  opacity: 0.9; /* Even higher opacity for more visible glows */
 }
 
 
@@ -99,30 +100,25 @@ body::after { /* Additional layer for more complex glow */
 }
 
 @keyframes auroraGlow {
-  0% { transform: rotate(0deg) scale(1); opacity: 0.3; } /* Reduced min opacity slightly */
-  50% { transform: rotate(180deg) scale(1.2); opacity: 0.7; }
-  100% { transform: rotate(360deg) scale(1); opacity: 0.3; }
+  0% { transform: rotate(0deg) scale(1); opacity: 0.5; } /* Increased min opacity */
+  50% { transform: rotate(180deg) scale(1.2); opacity: 0.9; } /* Increased max opacity */
+  100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
 }
 
 @keyframes subtlePulse { /* Enhanced pulse for main aurora layer */
-  0% { opacity: 0.6; }
+  0% { opacity: 0.8; } /* Higher base opacity */
   100% { opacity: 1.0; }
 }
 
 
 .aurora-ui-element {
-  background-color: oklch(var(--aurora-element-bg) / 0.6); /* Semi-transparent card background */
-  border: 2px solid oklch(var(--aurora-border-color) / 0.5);
-  border-radius: var(--radius);
-  backdrop-filter: blur(12px) saturate(150%); /* Glassmorphism effect */
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background:none
   box-shadow: 0 8px 32px 0 oklch(var(--aurora-bg-start) / 0.37);
   transition: all 0.3s ease;
 }
 
 .aurora-ui-element:hover {
-  border-color: oklch(var(--aurora-border-color) / 0.8);
-  box-shadow: 0 12px 40px 0 oklch(var(--aurora-bg-start) / 0.5);
+ 
 }
 
 .aurora-button {

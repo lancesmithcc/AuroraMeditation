@@ -553,7 +553,7 @@ function App() {
               </div>
             ))}
              {chatMessages.length === 0 && (
-                <div className="text-center text-muted-foreground/70 pt-10">                 
+                <div className="text-center text-muted-foreground/70 pt-10">
                 </div>
             )}
           </CardContent>
