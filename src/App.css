@@ -6,7 +6,7 @@
 
 :root {
   --background: 260 20% 5%; /* Deep indigo/purple */
-  --foreground: 250 20% 95%; /* Light lavender/off-white */
+  --foreground: 250 0% 0%; /* black */
 
   --card: 260 20% 8%; /* Slightly lighter than background */
   --card-foreground: var(--foreground);
@@ -208,7 +208,7 @@ body::after { /* Additional layer for more complex glow */
 }
 
 .animate-slow-spin { /* This class is on the div in App.tsx with z-index -z-5 */
-  animation: slow-spin 90s linear infinite;
+  animation: slow-spin 30s linear infinite;
 }
 
 #spiral-center {
