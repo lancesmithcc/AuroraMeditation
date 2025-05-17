@@ -5,7 +5,7 @@ export class WhiteNoisePlayer {
   private filterNode: BiquadFilterNode | null = null;
   public isPlaying: boolean = false;
   private buffer: AudioBuffer | null = null;
-  private targetVolume: number = 0.2; // Default, will be set by setup
+  private targetVolume: number = 0.05; // Default, will be set by setup
 
   constructor(audioContext: AudioContext) {
     this.audioContext = audioContext;
@@ -22,7 +22,7 @@ export class WhiteNoisePlayer {
   }
 
   public setup(
-    volume: number = 0.2, 
+    volume: number = 0.05, 
     filterType: BiquadFilterType = 'lowpass', 
     filterFrequency: number = 20000,
     filterQ: number = 1

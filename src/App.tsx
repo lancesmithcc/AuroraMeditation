@@ -247,16 +247,16 @@ function App() {
         
         // Adjust volume based on frequency
         // Higher frequencies should be quieter to avoid distraction
-        // Base volume of 0.08, but reduce for higher frequencies
-        let noiseVolume = 0.08;
+        // Base volume very low for subtlety
+        let noiseVolume = 0.03;
         
-        // For higher frequencies (meaning less filtering), reduce the volume
+        // For higher frequencies (meaning less filtering), reduce the volume even further
         // The higher the filter frequency, the more high frequencies are preserved
         if (filterFreq > 800) {
           // Progressively reduce volume as filter frequency increases
-          // Subtract up to 0.05 (more than half of base volume)
-          const reductionFactor = Math.min(0.05, (filterFreq - 800) / 20000 * 0.05);
-          noiseVolume = Math.max(0.03, noiseVolume - reductionFactor);
+          // Subtract up to 0.02 from already low base volume
+          const reductionFactor = Math.min(0.02, (filterFreq - 800) / 20000 * 0.02);
+          noiseVolume = Math.max(0.01, noiseVolume - reductionFactor);
         }
         
         whiteNoisePlayerRef.current.setup(noiseVolume, filterType, filterFreq, 1);
@@ -535,6 +535,9 @@ function App() {
         <div className="relative w-1 h-1" id="spiral-center"></div>
       </div>
       <header className="w-full max-w-2xl mb-8 text-center">
+        <div className="flex justify-center mb-4">
+          <img src="/icons/icon-base.svg" alt="Aurora Meditation Logo" width="333" className="mx-auto" />
+        </div>
         <h1 className="text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[oklch(0.7_0.2_250)] via-[oklch(0.7_0.2_280)] to-[oklch(0.7_0.2_310)] py-2">
           Aurora Meditation Generator
         </h1>
