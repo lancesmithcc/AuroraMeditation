@@ -56,6 +56,8 @@ function App() {
   const whiteNoisePlayerRef = useRef<WhiteNoisePlayer | null>(null);
   const [isWhiteNoisePlaying, setIsWhiteNoisePlaying] = useState<boolean>(false);
 
+  const loadingAudioRef = useRef<HTMLAudioElement | null>(null);
+
   const meditationAudioNodesRef = useRef<{
     source: AudioBufferSourceNode;
     eqNode: BiquadFilterNode;
@@ -83,6 +85,22 @@ function App() {
       whiteNoisePlayerRef.current = new WhiteNoisePlayer(ctx);
     }
     
+    // Initialize loading audio
+    if (typeof window !== 'undefined') {
+      const audio = new Audio('/sounds/loadingsong.mp3');
+      audio.loop = true;
+      loadingAudioRef.current = audio;
+
+      // Cleanup when component unmounts
+      return () => {
+        if (audio && !audio.paused) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+        loadingAudioRef.current = null; // Clean up ref
+      };
+    }
+
     return () => {
       if (meditationAudioNodesRef.current) {
         try {
@@ -104,6 +122,21 @@ function App() {
       }
     };
   }, []);
+
+  // Effect to play/pause loading sound based on isAnalyzing state
+  useEffect(() => {
+    if (loadingAudioRef.current) { // Check if audio element is initialized
+      if (isAnalyzing) {
+        loadingAudioRef.current.currentTime = 0; // Reset before playing
+        loadingAudioRef.current.play().catch(e => console.error("Error playing loading song:", e));
+      } else {
+        if (!loadingAudioRef.current.paused) {
+          loadingAudioRef.current.pause();
+          loadingAudioRef.current.currentTime = 0;
+        }
+      }
+    }
+  }, [isAnalyzing]); // Dependency: isAnalyzing
 
   useEffect(() => {
     if (chatContainerRef.current) {
