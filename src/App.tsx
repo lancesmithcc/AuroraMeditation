@@ -8,9 +8,7 @@ import { BinauralBeatPlayer } from './audio/binauralBeats'
 import { WhiteNoisePlayer } from './audio/whiteNoise'
 import { analyzeIntention, IntentionAnalysisParameters, generateMeditationScript, VoiceProfile } from './lib/deepseekApi'
 import { synthesizeSpeech, getVoiceIdFromProfile } from './lib/elevenLabsApi'
-
-// Placeholder for MP3 Encoder library (e.g., lamejs)
-// import lamejs from 'lamejs'; // You would typically install and import this
+import lamejs from 'lamejs'
 
 const acutonicsFrequencyDetails: Record<number, { name: string; association: string; symbol: string }> = {
   136.10: { name: "Ohm", association: "Earth - Grounding & Stability", symbol: "♁" },
@@ -514,16 +512,11 @@ function App() {
 
   // --- MP3 Encoding Utility (using placeholder for lamejs) ---
   async function audioBufferToMp3(audioBuffer: AudioBuffer, onProgress?: (progress: number) => void): Promise<Blob> {
-    const lame = (window as any).lamejs; // Access lamejs if loaded globally, or handle import properly
-    if (!lame || !lame.Mp3Encoder) {
-      console.error("MP3 Encoder (lamejs) not available. Falling back to WAV.");
-      // Fallback or throw error if not critical - for now, let's assume it should be available
-      // or the user would be informed to use WAV.
-      // For this example, let's throw to make it clear it's a dependency issue for the implementer.
+    if (!lamejs || !lamejs.Mp3Encoder) {
       throw new Error("MP3 Encoder (lamejs) is not loaded. Please ensure it is properly installed and imported.");
     }
 
-    const mp3encoder = new lame.Mp3Encoder(audioBuffer.numberOfChannels, audioBuffer.sampleRate, 128); // 128kbps
+    const mp3encoder = new lamejs.Mp3Encoder(audioBuffer.numberOfChannels, audioBuffer.sampleRate, 128); // 128kbps
     const samplesLeft = audioBuffer.getChannelData(0); // Float32Array
     let samplesRight: Float32Array | null = null;
     if (audioBuffer.numberOfChannels === 2) {
