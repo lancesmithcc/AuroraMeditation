@@ -66,13 +66,13 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* Behind all content */
+  z-index: -10; /* Adjusted z-index to be behind spiral if spiral is -5 */
   background: radial-gradient(ellipse at 50% 0%, var(--aurora-bg-start) 0%, transparent 70%),
               radial-gradient(ellipse at 0% 100%, var(--aurora-bg-end) 0%, transparent 70%),
               radial-gradient(ellipse at 100% 100%, var(--aurora-bg-mid) 0%, transparent 70%),
               var(--aurora-bg-mid); /* Base background */
   animation: auroraShift 45s infinite linear, subtlePulse 15s infinite alternate;
-  opacity: 0.8; /* Soften the effect */
+  opacity: 0.8; /* Initial opacity */
 }
 
 body::after { /* Additional layer for more complex glow */
@@ -80,13 +80,13 @@ body::after { /* Additional layer for more complex glow */
   position: fixed;
   top: -50%; left: -50%;
   width: 200%; height: 200%;
-  z-index: -2;
+  z-index: -15; /* Adjusted z-index */
   background: 
     radial-gradient(circle at 20% 30%, var(--aurora-glow-start) 0%, transparent 30%),
     radial-gradient(circle at 80% 70%, var(--aurora-glow-mid) 0%, transparent 35%),
     radial-gradient(circle at 50% 50%, var(--aurora-glow-end) 0%, transparent 40%);
   animation: auroraGlow 30s infinite alternate ease-in-out;
-  opacity: 0.6;
+  opacity: 0.6; /* Initial opacity for glows */
 }
 
 
@@ -99,14 +99,14 @@ body::after { /* Additional layer for more complex glow */
 }
 
 @keyframes auroraGlow {
-  0% { transform: rotate(0deg) scale(1); opacity: 0.4; }
+  0% { transform: rotate(0deg) scale(1); opacity: 0.3; } /* Reduced min opacity slightly */
   50% { transform: rotate(180deg) scale(1.2); opacity: 0.7; }
-  100% { transform: rotate(360deg) scale(1); opacity: 0.4; }
+  100% { transform: rotate(360deg) scale(1); opacity: 0.3; }
 }
 
-@keyframes subtlePulse {
-  0% { opacity: 0.7; }
-  100% { opacity: 0.9; }
+@keyframes subtlePulse { /* Enhanced pulse for main aurora layer */
+  0% { opacity: 0.6; }
+  100% { opacity: 1.0; }
 }
 
 
@@ -207,9 +207,8 @@ body::after { /* Additional layer for more complex glow */
   }
 }
 
-.animate-slow-spin {
-  animation: slow-spin 90s linear infinite; /* Increased duration for slower spin */
-  /* z-index is managed by Tailwind class -z-20 on the div itself */
+.animate-slow-spin { /* This class is on the div in App.tsx with z-index -z-5 */
+  animation: slow-spin 90s linear infinite;
 }
 
 #spiral-center {
@@ -224,65 +223,45 @@ body::after { /* Additional layer for more complex glow */
   left: 50%;
   top: 50%;
   border-style: solid;
-  border-color: oklch(60% 0.1 270 / 0.2); /* Indigo, semi-transparent */
-  border-width: 0; /* We'll set specific borders */
+  border-color: oklch(60% 0.12 275 / 0.35); /* Slightly more vibrant Indigo, increased base opacity */
+  border-width: 0; 
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 20px oklch(60% 0.1 270 / 0.1), inset 0 0 15px oklch(60% 0.1 270 / 0.1);
-  filter: blur(1px); /* Soften the edges slightly */
+  box-shadow: 0 0 25px oklch(60% 0.12 275 / 0.25), inset 0 0 20px oklch(60% 0.12 275 / 0.2); /* Enhanced shadow */
+  filter: blur(0.5px); /* Slightly sharper */
 }
 
 #spiral-center::before {
-  width: 30rem; /* Size of the first arm's orbit */
+  width: 30rem; 
   height: 30rem;
-  border-top-width: 5px;
-  border-left-width: 5px;
-  border-top-color: transparent; /* Makes it an open arc */
-  animation: spiral-arm-pulse 8s infinite alternate ease-in-out;
+  border-top-width: 6px; /* Thicker arm */
+  border-left-width: 6px; /* Thicker arm */
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-top-color: transparent; 
+  animation: spiral-arm-pulse 7s infinite alternate ease-in-out;
 }
 
 #spiral-center::after {
-  width: 40rem; /* Size of the second arm's orbit */
+  width: 40rem; 
   height: 40rem;
-  border-bottom-width: 6px;
-  border-right-width: 6px;
-  border-bottom-color: transparent; /* Makes it an open arc */
-  transform: translate(-50%, -50%) rotate(90deg); /* Offset rotation for spiral effect */
-  animation: spiral-arm-pulse 8s infinite alternate-reverse ease-in-out; /* Reverse pulse */
+  border-bottom-width: 7px; /* Thicker arm */
+  border-right-width: 7px; /* Thicker arm */
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-color: transparent; 
+  transform: translate(-50%, -50%) rotate(90deg); 
+  animation: spiral-arm-pulse 7s infinite alternate-reverse ease-in-out; 
 }
 
 @keyframes spiral-arm-pulse {
   0% {
-    opacity: 0.2;
-    filter: blur(2px);
-    border-width: 0px 0px 4px 4px; /* Keep consistent with visible borders */
+    opacity: 0.4; /* Increased min opacity */
+    filter: blur(1px);
+    /* Border width changes can be jittery, relying on opacity and blur more */
   }
   100% {
-    opacity: 0.5;
-    filter: blur(1px);
-    border-width: 0px 0px 7px 7px; /* Pulse thickness */
+    opacity: 0.8; /* Increased max opacity */
+    filter: blur(0px); /* Sharper at peak */
   }
-}
-
-/* Adjust #spiral-center::before for its specific borders */
-#spiral-center::before {
-  width: 30rem;
-  height: 30rem;
-  /* border-top-width and border-left-width are set above */
-  border-right-width: 0;
-  border-bottom-width: 0;
-  border-top-color: transparent;
-  animation: spiral-arm-pulse 8s infinite alternate ease-in-out;
-}
-
-/* Adjust #spiral-center::after for its specific borders */
-#spiral-center::after {
-  width: 40rem;
-  height: 40rem;
-  /* border-bottom-width and border-right-width are set above */
-  border-top-width: 0;
-  border-left-width: 0;
-  border-bottom-color: transparent;
-  transform: translate(-50%, -50%) rotate(90deg);
-  animation: spiral-arm-pulse 8s infinite alternate-reverse ease-in-out;
 }

@@ -513,7 +513,7 @@ function App() {
   return (
     <div className="flex flex-col items-center justify-between min-h-screen p-4 sm:p-6 md:p-8 selection:bg-[oklch(var(--aurora-border-color)/0.3)] selection:text-white relative isolate">
       {/* Indigo Spiral Background Layer - Container for pseudo-elements */}
-      <div aria-hidden="true" className="fixed inset-0 -z-20 animate-slow-spin flex items-center justify-center">
+      <div aria-hidden="true" className="fixed inset-0 -z-5 animate-slow-spin flex items-center justify-center">
         {/* This div will now act as the base for the pseudo-element spiral arms */}
         <div className="relative w-1 h-1" id="spiral-center"></div>
       </div>
