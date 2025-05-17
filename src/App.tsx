@@ -253,7 +253,7 @@ function App() {
 
       if (analysisParams.meditationTheme) {
         setChatMessages(prev => [...prev, {type: 'system', text: `Generating meditation script for theme: "${analysisParams.meditationTheme}"...`}]);
-        const script = await generateMeditationScript(analysisParams.meditationTheme);
+        const script = await generateMeditationScript(analysisParams.meditationTheme, currentIntention);
 
         if (script) {
           let audioArrayBuffer: ArrayBuffer | null = null;

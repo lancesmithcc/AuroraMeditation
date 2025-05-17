@@ -112,7 +112,7 @@ Example JSON output:
   }
 }
 
-export async function generateMeditationScript(theme: string): Promise<string | null> {
+export async function generateMeditationScript(theme: string, originalUserIntention: string): Promise<string | null> {
   const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
 
   if (!apiKey) {
@@ -122,10 +122,10 @@ export async function generateMeditationScript(theme: string): Promise<string | 
 
   const systemPrompt = `
 You are an expert meditation scriptwriter.
-Your task is to generate a calming guided meditation script. This script must be deeply rooted in the provided "Theme from user's intention".
-The goal is to make the user feel heard by explicitly incorporating and expanding upon the keywords, sentiments, and goals captured in this theme.
-The script should be approximately 1000-1500 words, suitable for a meditation session of around 7-10 minutes, considering a calm speaking pace with pauses.
-It should have a clear beginning (e.g., settling in, focusing on breath), middle (exploring the theme, visualization, deepening relaxation related to the theme), and end (e.g., gentle return to awareness, carrying the theme's positive aspects forward).
+Your task is to generate a calming guided meditation script. This script must be deeply rooted in the provided "Theme from user's intention" AND the "Original User Intention".
+The goal is to make the user feel heard by explicitly incorporating and expanding upon the keywords and sentiments from the theme, AND by echoing any particularly relevant or poignant words/phrases from the "Original User Intention" if they add depth or personalization.
+The script should be approximately 2500-3000 words, suitable for a meditation session of around 20-25 minutes, considering a calm speaking pace with pauses.
+It should have a clear beginning (e.g., settling in, focusing on breath), middle (exploring the theme, visualization, deepening relaxation related to the theme and original intention), and end (e.g., gentle return to awareness, carrying the theme's positive aspects forward).
 
 CRITICAL INSTRUCTIONS FOR PACING AND TONE:
 - Write in short, simple sentences.
@@ -133,12 +133,16 @@ CRITICAL INSTRUCTIONS FOR PACING AND TONE:
 - DO NOT use ellipses (...) or descriptive text like "(short pause)" or "(pause here)" to indicate pauses. ONLY use the <break time="Xs" /> tag.
 - The overall tone should be very calm, gentle, and encourage slow, intentional listening.
 - Avoid complex vocabulary or long, run-on sentences.
-- The language should be soothing and vivid, directly relating to the theme.
+- The language should be soothing and vivid, directly relating to the theme and original intention.
 
-CRITICAL: The meditation script MUST directly address and weave in the specifics of the theme throughout. It should feel as though it's responding directly to what the user expressed.
-Theme from user's intention: "${theme}"
+CRITICAL: The meditation script MUST directly address and weave in the specifics of the theme throughout. If the "Original User Intention" contains specific phrasing that captures the user's state or desire well, try to naturally incorporate or reflect those exact words or phrases. It should feel as though it's responding directly to what the user expressed.
 
-For example, if the theme is "finding peace amidst chaos and daily pressures", the script should use phrases like "Even when the world around you feels chaotic, acknowledge this pressure, and know you can find a center of peace within...", or "Gently turn your attention inward, away from the daily pressures, to that quiet, peaceful space that always resides in you..."
+Theme from user's intention (a summary/keywords): "${theme}"
+Original User Intention (the user's full raw message): "${originalUserIntention}"
+
+For example, if the theme is "finding peace amidst chaos" and the original intention was "I'm so overwhelmed by work emails and the kids screaming, I just need to find some peace amidst this chaos.", the script could include:
+"Acknowledge that feeling of being overwhelmed... perhaps by work, by the sounds around you, the daily pressures. <break time="1s" /> Let those specific thoughts of emails or the day's noises just be. <break time="1.5s" /> We're here to find that island of peace, your center, even when chaos seems to swirl..."
+
 Output only the script text itself. Do not include any other text, greetings, titles, or explanations like "Here is the script:". Just the pure script.
 `;
 
