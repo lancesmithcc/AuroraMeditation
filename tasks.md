@@ -46,6 +46,7 @@
     - [x] Use parameters from Deepseek to configure and play Ambient Noise.
         - [x] Map `analysisParams.ambientNoiseType` to `WhiteNoisePlayer` settings.
         - [x] Use `analysisParams.acutonicsFrequency` to anchor/filter noise.
+        - [x] Implement dynamic volume adjustment for high frequency noise.
 - [x] **Audio Playback Controls**
     - [x] Play/Pause/Stop functionality for generated audio (individual players and meditation audio now have stop logic).
     - [ ] Master volume control (optional).

@@ -240,9 +240,26 @@ function App() {
       if (whiteNoisePlayerRef.current && analysisParams.ambientNoiseType !== 'none') {
         let filterType: BiquadFilterType = 'lowpass';
         let filterFreq = 20000;
+        
+        // Set filter based on noise type
         if (analysisParams.ambientNoiseType === 'pink') { filterType = 'lowshelf'; filterFreq = 800; }
         else if (analysisParams.ambientNoiseType === 'brown') { filterType = 'lowpass'; filterFreq = 500; }
-        whiteNoisePlayerRef.current.setup(0.08, filterType, filterFreq, 1);
+        
+        // Adjust volume based on frequency
+        // Higher frequencies should be quieter to avoid distraction
+        // Base volume of 0.08, but reduce for higher frequencies
+        let noiseVolume = 0.08;
+        
+        // For higher frequencies (meaning less filtering), reduce the volume
+        // The higher the filter frequency, the more high frequencies are preserved
+        if (filterFreq > 800) {
+          // Progressively reduce volume as filter frequency increases
+          // Subtract up to 0.05 (more than half of base volume)
+          const reductionFactor = Math.min(0.05, (filterFreq - 800) / 20000 * 0.05);
+          noiseVolume = Math.max(0.03, noiseVolume - reductionFactor);
+        }
+        
+        whiteNoisePlayerRef.current.setup(noiseVolume, filterType, filterFreq, 1);
         willPlayNoise = true;
         audioDescription += `Ambient Noise: ${analysisParams.ambientNoiseType}.`;
       }
