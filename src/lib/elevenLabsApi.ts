@@ -1,4 +1,5 @@
 import type { VoiceProfile } from './deepseekApi'; // Import VoiceProfile type
+import type { TTSService } from './ttsServiceInterface';
 
 const ELEVENLABS_API_URL_BASE = 'https://api.elevenlabs.io/v1/text-to-speech';
 
@@ -14,14 +15,13 @@ const voiceProfileToIdMap: Record<VoiceProfile, string> = {
   'default': 'pjcYQlDFKMbcOUp6F5GD' // Britney
 };
 
-export function getVoiceIdFromProfile(profile?: VoiceProfile): string {
-  // return 'pjcYQlDFKMbcOUp6F5GD'; // Britney (pre-made) - FOR TESTING
+function getVoiceId(profile?: VoiceProfile): string {
   return voiceProfileToIdMap[profile || 'default'] || voiceProfileToIdMap['default'];
 }
 
-export async function synthesizeSpeech(
-  text: string, 
-  voiceId: string // Expecting a resolved voice ID now
+async function synthesizeSpeech(
+  text: string,
+  voice: VoiceProfile | string // Changed to accept VoiceProfile or string
 ): Promise<ArrayBuffer | null> {
   const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
 
@@ -30,7 +30,17 @@ export async function synthesizeSpeech(
     throw new Error("ElevenLabs API key is missing. Please check your .env file (ensure it's VITE_ELEVENLABS_API_KEY).");
   }
 
-  const apiUrl = `${ELEVENLABS_API_URL_BASE}/${voiceId}`;
+  // Resolve voice profile to ID if a profile name is given
+  let resolvedVoiceId: string;
+  if (typeof voice === 'string' && voiceProfileToIdMap[voice as VoiceProfile]) {
+    resolvedVoiceId = getVoiceId(voice as VoiceProfile);
+  } else if (typeof voice === 'string') {
+    resolvedVoiceId = voice; // Assume it's a direct voice ID
+  } else {
+    resolvedVoiceId = getVoiceId(voice); // It's a VoiceProfile enum/type
+  }
+
+  const apiUrl = `${ELEVENLABS_API_URL_BASE}/${resolvedVoiceId}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -63,6 +73,13 @@ export async function synthesizeSpeech(
 
   } catch (error) {
     console.error('Error calling ElevenLabs API:', error);
-    throw error; // Re-throw to be caught by the caller
+    // Return null as per interface, or re-throw if preferred by design
+    // For now, let's re-throw to make failures explicit to the caller
+    throw error; 
   }
 }
+
+export const elevenLabsService: TTSService = {
+  synthesizeSpeech,
+  getVoiceId,
+};

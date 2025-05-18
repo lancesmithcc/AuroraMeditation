@@ -104,4 +104,27 @@
 - Acutonics Frequencies: Ohm (~136.10 Hz), New Moon (~210.42 Hz), Sun (~126.22 Hz), and others added.
 - Deepseek Prompt Engineering: Prompts for intention analysis and script generation created.
 - ElevenLabs Voice Selection: Default voice 'Rachel' (21m00Tcm4TlvDq8ikWAM) used.
+
+# TTS Integration Plan
+
+## Phase 1: Add Fal.ai Kokoro TTS and Configuration
+
+- [x] Create `tasks.md` to outline the plan.
+- [x] Create a configuration file (e.g., `src/lib/ttsConfig.ts`) to specify the active TTS provider.
+- [x] Define an interface for TTS services to ensure consistent API.
+- [x] Refactor `elevenLabsApi.ts` to implement the TTS service interface.
+- [x] Create `falApi.ts` for Fal.ai Kokoro TTS, implementing the TTS service interface.
+- [x] Modify the main audio synthesis logic to use the configured TTS provider and the service interface.
+- [x] Update UI components if necessary to select voice profiles compatible with the chosen TTS.
+- [x] Test both ElevenLabs and Fal.ai integrations.
+
+## Phase 2: Voice Profile Management (Future)
+
+- [ ] Design a more robust voice profile system that can accommodate provider-specific voice IDs/names.
+- [ ] Allow users to select preferred TTS provider if multiple are configured.
+
+## Phase 3: Error Handling and Resilience (Future)
+
+- [ ] Implement fallback mechanisms if a primary TTS provider fails.
+- [ ] Improve error reporting to the user.
 ```

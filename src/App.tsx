@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import { BinauralBeatPlayer } from './audio/binauralBeats'
 import { WhiteNoisePlayer } from './audio/whiteNoise'
 import { analyzeIntention, IntentionAnalysisParameters, generateMeditationScript, VoiceProfile } from './lib/deepseekApi'
-import { synthesizeSpeech, getVoiceIdFromProfile } from './lib/elevenLabsApi'
+import activeTtsService from './lib/ttsService'
 import lamejs from 'lamejs'
 
 const acutonicsFrequencyDetails: Record<number, { name: string; association: string; symbol: string }> = {
@@ -338,8 +338,7 @@ function App() {
 
           if (!audioArrayBuffer) {
             setChatMessages(prev => [...prev, {type: 'system', text: `Script generated. Synthesizing audio with ${voiceProfileToDisplay} voice...`}]);
-            const voiceIdToUse = getVoiceIdFromProfile(analysisParams.suggestedVoiceProfile);
-            audioArrayBuffer = await synthesizeSpeech(script, voiceIdToUse);
+            audioArrayBuffer = await activeTtsService.synthesizeSpeech(script, analysisParams.suggestedVoiceProfile);
             
             if (audioArrayBuffer) {
               try {
