@@ -36,10 +36,10 @@ interface FalKokoroInput {
 // Define a mapping from our abstract voice profiles to specific Fal.ai Kokoro Voice IDs
 const voiceProfileToFalVoiceMap: Record<VoiceProfile, FalKokoroAmericanEnglishVoiceId> = {
   'calm_female_gentle': 'af_heart',
-  'soothing_male_deep': 'af_nova',   // Fallback to female, warning will be logged
-  'clear_female_neutral': 'af_aoede',
-  'warm_male_reassuring': 'af_nova', // Fallback to female, warning will be logged
-  'default': 'af_nova', 
+  'soothing_male_deep': 'af_heart',   // Fallback to female, warning will be logged
+  'clear_female_neutral': 'af_heart',
+  'warm_male_reassuring': 'af_heart', // Fallback to female, warning will be logged
+  'default': 'af_heart', 
 };
 
 function getVoiceId(profile?: VoiceProfile): FalKokoroAmericanEnglishVoiceId {
@@ -63,8 +63,8 @@ async function synthesizeSpeech(
   // Note: @fal-ai/client typically relies on global configuration (e.g., fal.config()) 
   // or environment variables in Node for authentication. Ensure it's set up if this call fails.
 
-  // Strip SSML tags for Fal.ai as it likely doesn't support them
-  const plainText = text.replace(/<[^>]+>/g, '');
+  // Strip SSML tags and asterisks for Fal.ai
+  const plainText = text.replace(/<[^>]+>/g, '').replace(/\*/g, '');
 
   let resolvedVoiceModel: string; // Keep as string initially for broader assignment
   if (typeof voice === 'string' && voiceProfileToFalVoiceMap[voice as VoiceProfile]) {

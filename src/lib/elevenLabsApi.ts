@@ -30,6 +30,9 @@ async function synthesizeSpeech(
     throw new Error("ElevenLabs API key is missing. Please check your .env file (ensure it's VITE_ELEVENLABS_API_KEY).");
   }
 
+  // Remove asterisks from the text
+  const cleanedText = text.replace(/\*/g, '');
+
   // Resolve voice profile to ID if a profile name is given
   let resolvedVoiceId: string;
   if (typeof voice === 'string' && voiceProfileToIdMap[voice as VoiceProfile]) {
@@ -51,7 +54,7 @@ async function synthesizeSpeech(
         'xi-api-key': apiKey,
       },
       body: JSON.stringify({
-        text: text,
+        text: cleanedText,
         model_id: 'eleven_turbo_v2.5', // Switched from eleven_multilingual_v2 for better economy
         voice_settings: {
           stability: 0.55, // Slightly more stability for consistent tone
