@@ -109,7 +109,16 @@ async function synthesizeSpeech(
       return audioArrayBuffer;
     }
      else {
-      console.error('Fal.ai Kokoro: Unexpected response structure. Audio URL not found. Full response:', result);
+      let responseDetails = "No details available";
+      try {
+        responseDetails = JSON.stringify(result, null, 2);
+        if (responseDetails === '{}' || responseDetails === 'null') { // Check for empty or null stringification
+            responseDetails += ` | Keys: ${Object.keys(result).join(', ')}`;
+        }
+      } catch (e) {
+        responseDetails = `Could not stringify result. Keys: ${Object.keys(result).join(', ')}`;
+      }
+      console.error(`Fal.ai Kokoro: Unexpected response structure. Audio URL not found. Full response details: ${responseDetails}`, result);
       throw new Error('Fal.ai Kokoro: Audio URL not found in the response.');
     }
 
