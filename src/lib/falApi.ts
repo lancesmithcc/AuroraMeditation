@@ -86,8 +86,19 @@ async function synthesizeSpeech(
       logs: true, // Enable logs for debugging during development
     });
 
-    if (result && result.data && result.data.audio_url) {
-      console.log(`Fal.ai Kokoro: Audio URL received: ${result.data.audio_url}`);
+    // Check for the new structure first
+    if (result && result.data && result.data.audio && typeof result.data.audio === 'object' && result.data.audio.url) {
+      console.log(`Fal.ai Kokoro: Audio URL received: ${result.data.audio.url}`);
+      const audioResponse = await fetch(result.data.audio.url);
+      if (!audioResponse.ok) {
+        const errorBody = await audioResponse.text();
+        console.error('Fal.ai Kokoro: Failed to fetch audio from URL:', audioResponse.status, errorBody);
+        throw new Error(`Fal.ai Kokoro: Failed to fetch audio from URL ${result.data.audio.url}. Status: ${audioResponse.status}`);
+      }
+      const audioArrayBuffer = await audioResponse.arrayBuffer();
+      return audioArrayBuffer;
+    } else if (result && result.data && result.data.audio_url) { // Keep old check as a fallback, though likely not needed now
+      console.log(`Fal.ai Kokoro: Audio URL received (legacy path): ${result.data.audio_url}`);
       const audioResponse = await fetch(result.data.audio_url);
       if (!audioResponse.ok) {
         const errorBody = await audioResponse.text();
