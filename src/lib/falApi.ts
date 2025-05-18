@@ -63,6 +63,9 @@ async function synthesizeSpeech(
   // Note: @fal-ai/client typically relies on global configuration (e.g., fal.config()) 
   // or environment variables in Node for authentication. Ensure it's set up if this call fails.
 
+  // Strip SSML tags for Fal.ai as it likely doesn't support them
+  const plainText = text.replace(/<[^>]+>/g, '');
+
   let resolvedVoiceModel: string; // Keep as string initially for broader assignment
   if (typeof voice === 'string' && voiceProfileToFalVoiceMap[voice as VoiceProfile]) {
     resolvedVoiceModel = getVoiceId(voice as VoiceProfile);
@@ -79,7 +82,7 @@ async function synthesizeSpeech(
     console.log(`Fal.ai Kokoro: Subscribing with model: ${FAL_KOKORO_MODEL_PATH}, voice: ${resolvedVoiceModel}`);
     const result: any = await fal.subscribe(FAL_KOKORO_MODEL_PATH, {
       input: {
-        prompt: text,
+        prompt: plainText,
         voice: resolvedVoiceModel as FalKokoroAmericanEnglishVoiceId,
         speed: 0.7,
       } as FalKokoroInput, // Cast the input object here
