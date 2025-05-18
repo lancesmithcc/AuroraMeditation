@@ -109,7 +109,7 @@ async function synthesizeSpeech(
       return audioArrayBuffer;
     }
      else {
-      console.error('Fal.ai Kokoro: Unexpected response structure. Audio URL not found.', result);
+      console.error('Fal.ai Kokoro: Unexpected response structure. Audio URL not found. Full response:', result);
       throw new Error('Fal.ai Kokoro: Audio URL not found in the response.');
     }
 
