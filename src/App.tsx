@@ -59,6 +59,44 @@ function createReverbImpulseResponse(audioContext: AudioContext | OfflineAudioCo
 }
 
 const AUDIO_CACHE_NAME = 'auramind-audio-cache-v1';
+const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook-test/a1f817bc-7b37-4626-9328-b111aada64a4';
+
+async function sendToWebhook(intention: string, audioBuffer: ArrayBuffer, theme: string, voiceProfile: VoiceProfile) {
+  if (!N8N_WEBHOOK_URL) {
+    console.warn("Webhook URL is not configured. Skipping webhook send.");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('intention', intention); // The original full script/text
+    formData.append('theme', theme); // The theme of the meditation
+    formData.append('voiceProfile', voiceProfile);
+    const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+    formData.append('audioFile', audioBlob, `meditation-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
+
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      body: formData,
+      // Note: Content-Type is automatically set by the browser for FormData
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('Webhook Error:', response.status, errorBody);
+      // Optionally, update chat messages with webhook error
+      // setChatMessages(prev => [...prev, {type: 'error', text: `Failed to send data to webhook: ${response.status}`}]);
+    } else {
+      console.log('Successfully sent data to webhook.');
+      // Optionally, update chat messages with webhook success
+      // setChatMessages(prev => [...prev, {type: 'system', text: `Meditation data sent to integration service.`}]);
+    }
+  } catch (error) {
+    console.error('Error sending data to webhook:', error);
+    // Optionally, update chat messages with webhook error
+    // setChatMessages(prev => [...prev, {type: 'error', text: `Error sending data to webhook: ${error}`}]);
+  }
+}
 
 function App() {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
@@ -354,6 +392,10 @@ function App() {
           }
           
           if (audioArrayBuffer && currentAudioContext) {
+            // Send to webhook
+            sendToWebhook(script, audioArrayBuffer.slice(0), analysisParams.meditationTheme, analysisParams.suggestedVoiceProfile)
+              .catch(err => console.error("Failed to send to webhook (non-blocking):", err));
+
             setCurrentMeditationAudio({ 
               buffer: audioArrayBuffer.slice(0), 
               script, 
