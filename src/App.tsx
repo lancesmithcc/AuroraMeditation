@@ -59,7 +59,7 @@ function createReverbImpulseResponse(audioContext: AudioContext | OfflineAudioCo
 }
 
 const AUDIO_CACHE_NAME = 'auramind-audio-cache-v1';
-const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook-test/a1f817bc-7b37-4626-9328-b111aada64a4';
+const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook/a1f817bc-7b37-4626-9328-b111aada64a4';
 
 async function sendToWebhook(intention: string, audioBuffer: ArrayBuffer, theme: string, voiceProfile: VoiceProfile) {
   if (!N8N_WEBHOOK_URL) {
