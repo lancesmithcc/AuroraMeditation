@@ -107,4 +107,4 @@
 
 # Tasks
 
-- [ ] Push current changes to main branch
+- [x] Push current changes to main branch
