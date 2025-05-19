@@ -42,7 +42,8 @@ export async function synthesizeSpeech(
       },
       body: JSON.stringify({
         text: text,
-        model_id: '21m00Tcm4TlvDq8ikWAM', // Reverted to Rachel's ID, was 'eleven_turbo_v2.5'
+        model_id: 'eleven_turbo_v2_5', // Using a standard model ID. '21m00Tcm4TlvDq8ikWAM' was a voice ID.
+        voice_id: 'pjcYQlDFKMbcOUp6F5GD',
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
