@@ -42,10 +42,10 @@ export async function synthesizeSpeech(
       },
       body: JSON.stringify({
         text: text,
-        model_id: 'eleven_turbo_v2.5', // Switched from eleven_multilingual_v2 for better economy
+        model_id: '21m00Tcm4TlvDq8ikWAM', // Reverted to Rachel's ID, was 'eleven_turbo_v2.5'
         voice_settings: {
-          stability: 0.55, // Slightly more stability for consistent tone
-          similarity_boost: 0.70, // Keep similarity reasonable
+          stability: 0.5,
+          similarity_boost: 0.75,
           style: 0.3, // Lower style exaggeration for a more natural, less "performed" meditation voice
           use_speaker_boost: true 
         },
