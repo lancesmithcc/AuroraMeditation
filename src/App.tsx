@@ -58,7 +58,7 @@ function createReverbImpulseResponse(audioContext: AudioContext | OfflineAudioCo
   return impulse;
 }
 
-const AUDIO_CACHE_NAME = 'auramind-audio-cache-v1';
+const AUDIO_CACHE_NAME = 'auroraMeditation-audio-cache-v1';
 const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook/a1f817bc-7b37-4626-9328-b111aada64a4';
 // const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook-test/a1f817bc-7b37-4626-9328-b111aada64a4';
 
@@ -895,7 +895,7 @@ function App() {
       const themeSanitized = (currentMeditationAudio.theme || "mixed_meditation").replace(/[^a-z0-9_.-]/gi, '_').toLowerCase();
       const voiceSanitized = (currentMeditationAudio.voiceProfile || "default").replace(/[^a-z0-9_.-]/gi, '_').toLowerCase();
       const dateString = new Date().toISOString().slice(0, 10);
-      a.download = `AuraMind_FullMix_${themeSanitized}_${voiceSanitized}_${dateString}.mp3`; // Changed to .mp3
+      a.download = `auroraMeditation_${themeSanitized}_${voiceSanitized}_${dateString}.mp3`; // Changed to .mp3
       
       a.click();
       
