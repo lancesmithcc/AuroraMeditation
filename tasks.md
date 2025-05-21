@@ -40,3 +40,15 @@
 - [ ] Periodically review and refactor code to maintain modularity and readability.
 - [ ] Ensure efficient state management.
 - [ ] Write unit/integration tests for critical components.
+
+# Meditation App Tasks
+
+## Phase 1: Webhook Audio Enhancement
+
+- [x] Modify `sendToWebhook` to accept `IntentionAnalysisParameters` and `AudioContext`.
+- [x] In `sendToWebhook`, call `renderFullAudioMix` to generate the complete audio.
+- [x] In `sendToWebhook`, convert the rendered `AudioBuffer` to an MP3 `Blob` using `audioBufferToMp3`.
+- [ ] In `sendToWebhook`, convert the MP3 `Blob` to an `ArrayBuffer`. (This step is implicitly handled by `FormData` when appending a `Blob`)
+- [x] In `sendToWebhook`, send the complete MP3 `Blob` to the webhook (FormData handles conversion).
+- [x] Update the call to `sendToWebhook` in `handleIntentionSubmit` to pass the new parameters.
+- [ ] Test the webhook functionality to ensure the full audio mix is received.
