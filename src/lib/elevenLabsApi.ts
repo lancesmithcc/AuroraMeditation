@@ -41,8 +41,8 @@ export async function synthesizeSpeech(
       },
       body: JSON.stringify({
         text: text,
-        model_id: 'eleven_turbo_v2_5', // Using a standard model ID. '21m00Tcm4TlvDq8ikWAM' was a voice ID.
-        voice_id: 'pjcYQlDFKMbcOUp6F5GD',
+        model_id: 'eleven_turbo_v2_5', // Using a standard model ID.
+        // voice_id is primarily determined by the URL path parameter for this endpoint
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
