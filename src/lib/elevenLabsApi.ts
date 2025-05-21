@@ -10,7 +10,6 @@ const voiceProfileToIdMap: Record<VoiceProfile, string> = {
   'soothing_male_deep': 'AeRdCCKzvd23BpJoofzx', // cool british guy (deep, soothing)
   'clear_female_neutral': '0kikiUlL7YWWlM9hMR6q', // eldara oakwing
   'warm_male_reassuring': 'IsEXLHzSvLH9UMB6SLHj', // mellow matt
-  // 'uplifting_female_bright': 'jsCqWAovK2LkecY7zXl4', // Mimi (can be energetic) - currently commented out
   'default': 'pjcYQlDFKMbcOUp6F5GD' // Britney
 };
 
