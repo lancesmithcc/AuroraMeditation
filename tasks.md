@@ -48,7 +48,20 @@
 - [x] Modify `sendToWebhook` to accept `IntentionAnalysisParameters` and `AudioContext`.
 - [x] In `sendToWebhook`, call `renderFullAudioMix` to generate the complete audio.
 - [x] In `sendToWebhook`, convert the rendered `AudioBuffer` to an MP3 `Blob` using `audioBufferToMp3`.
-- [ ] In `sendToWebhook`, convert the MP3 `Blob` to an `ArrayBuffer`. (This step is implicitly handled by `FormData` when appending a `Blob`)
+- [x] In `sendToWebhook`, convert the MP3 `Blob` to an `ArrayBuffer`. (This step is implicitly handled by `FormData` when appending a `Blob`)
 - [x] In `sendToWebhook`, send the complete MP3 `Blob` to the webhook (FormData handles conversion).
 - [x] Update the call to `sendToWebhook` in `handleIntentionSubmit` to pass the new parameters.
 - [ ] Test the webhook functionality to ensure the full audio mix is received.
+
+## Phase 2: Webhook Test Page
+
+- [x] Refactor audio processing utilities (`renderFullAudioMix`, `audioBufferToMp3`, `createReverbImpulseResponse`, related constants) from `App.tsx` into a new file (e.g., `src/audio/audioProcessing.ts`).
+- [x] Refactor `sendToWebhook` function and `N8N_WEBHOOK_URL` from `App.tsx` into a new file (e.g., `src/lib/webhookUtils.ts`).
+- [x] Update `App.tsx` to import and use these refactored utilities.
+- [x] Install `react-router-dom`.
+- [x] Modify `src/main.tsx` to set up `BrowserRouter`.
+- [x] Create `src/pages/WebhookTestPage.tsx`.
+- [x] Implement mock data generation (intention, voice audio buffer) in `WebhookTestPage.tsx`.
+- [x] Implement a trigger (e.g., button) in `WebhookTestPage.tsx` to call the refactored `sendToWebhook` with mock data.
+- [x] Modify `App.tsx` to define routes for `/` (main app) and `/test` (webhook test page).
+- [ ] Test the `/test` page and confirm mock data is sent to the webhook.

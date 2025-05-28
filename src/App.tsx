@@ -4,11 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Brain, Send, Headphones, Waves, Zap, Loader2, Mic, UserCircle, Sparkles, Download } from "lucide-react"
 import { useState, useRef, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import { BinauralBeatPlayer } from './audio/binauralBeats'
 import { WhiteNoisePlayer } from './audio/whiteNoise'
 import { analyzeIntention, IntentionAnalysisParameters, generateMeditationScript, VoiceProfile } from './lib/deepseekApi'
 import { synthesizeSpeech, getVoiceIdFromProfile } from './lib/elevenLabsApi'
-import lamejs from 'lamejs'
+import { 
+    createReverbImpulseResponse, 
+    audioBufferToMp3, 
+    renderFullAudioMix,
+    VOICE_PLAYBACK_RATE,
+    VOICE_EQ_SETTINGS,
+    VOICE_COMPRESSOR_SETTINGS,
+    VOICE_GAIN_VALUE,
+    VOICE_DRY_GAIN_VALUE,
+    VOICE_REVERB_GAIN_VALUE
+} from './audio/audioProcessing';
+import { sendToWebhook } from './lib/webhookUtils';
+import { WebhookTestPage } from './pages/WebhookTestPage';
 
 const acutonicsFrequencyDetails: Record<number, { name: string; association: string; symbol: string }> = {
   136.10: { name: "Ohm", association: "Earth - Grounding & Stability", symbol: "♁" },
@@ -32,150 +45,11 @@ const getBinauralState = (freq: number): { state: string; emoji: string } => {
   return { state: "Gamma - Peak Awareness, Insight", emoji: "🚀" };
 };
 
-// --- Voice Processing Constants ---
-const VOICE_PLAYBACK_RATE = 0.85;
-const VOICE_EQ_SETTINGS = { type: 'highshelf' as BiquadFilterType, frequency: 3500, gain: 2.5 };
-const VOICE_COMPRESSOR_SETTINGS = { threshold: -20, knee: 25, ratio: 6, attack: 0.005, release: 0.150 };
-const VOICE_GAIN_VALUE = 2.5;
-const VOICE_DRY_GAIN_VALUE = 1.0;
-const VOICE_REVERB_IMPULSE_DURATION = 1.5;
-const VOICE_REVERB_IMPULSE_DECAY = 2.0;
-const VOICE_REVERB_GAIN_VALUE = 0.35;
-const BINAURAL_VOLUME = 0.18;
-// --- End Voice Processing Constants ---
+const AUDIO_CACHE_NAME = 'auramind-audio-cache-v1';
+// N8N_WEBHOOK_URL is in webhookUtils.ts
 
-function createReverbImpulseResponse(audioContext: AudioContext | OfflineAudioContext, duration: number = VOICE_REVERB_IMPULSE_DURATION, decay: number = VOICE_REVERB_IMPULSE_DECAY): AudioBuffer {
-  const sampleRate = audioContext.sampleRate;
-  const length = sampleRate * duration;
-  const impulse = audioContext.createBuffer(2, length, sampleRate); 
-
-  for (let channel = 0; channel < 2; channel++) {
-    const channelData = impulse.getChannelData(channel);
-    for (let i = 0; i < length; i++) {
-      channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
-    }
-  }
-  return impulse;
-}
-
-const AUDIO_CACHE_NAME = 'auroraMeditation-audio-cache-v1';
-const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook/a1f817bc-7b37-4626-9328-b111aada64a4';
-// const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook-test/a1f817bc-7b37-4626-9328-b111aada64a4';
-
-async function sendToWebhook(
-  intention: string, 
-  rawVoiceAudioBuffer: ArrayBuffer, 
-  theme: string, 
-  voiceProfile: VoiceProfile,
-  analysisParams: IntentionAnalysisParameters | null,
-  audioContext: AudioContext | null,
-  renderFullMixFunction: (rawMeditationArrayBuffer: ArrayBuffer, mainAudioContextSampleRate: number, currentAnalysisParams: IntentionAnalysisParameters | null) => Promise<AudioBuffer | null>,
-  audioBufferToMp3Function: (audioBuffer: AudioBuffer, onProgress?: (progress: number) => void) => Promise<Blob>
-) {
-  if (!N8N_WEBHOOK_URL) {
-    console.warn("Webhook URL is not configured. Skipping webhook send.");
-    return;
-  }
-  if (!analysisParams || !audioContext) {
-    console.warn("Analysis parameters or audio context not available for webhook. Sending voice only.");
-    // Fallback to sending only voice if full mix cannot be rendered
-    const audioBlob = new Blob([rawVoiceAudioBuffer], { type: 'audio/mpeg' });
-    const formData = new FormData();
-    formData.append('intention', intention);
-    formData.append('theme', theme);
-    formData.append('voiceProfile', voiceProfile);
-    formData.append('audioFile', audioBlob, `meditation-voiceonly-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
-    
-    try {
-        const response = await fetch(N8N_WEBHOOK_URL, {
-            method: 'POST',
-            body: formData,
-        });
-        if (!response.ok) {
-            const errorBody = await response.text();
-            console.error('Webhook Error (voice only fallback):', response.status, errorBody);
-        } else {
-            console.log('Successfully sent voice-only data to webhook (fallback).');
-        }
-    } catch (error) {
-        console.error('Error sending voice-only data to webhook (fallback):', error);
-    }
-    return;
-  }
-
-  try {
-    console.log("Webhook: Attempting to render full audio mix...");
-    const fullMixAudioBuffer = await renderFullMixFunction(
-      rawVoiceAudioBuffer,
-      audioContext.sampleRate,
-      analysisParams
-    );
-
-    if (!fullMixAudioBuffer) {
-      console.error("Webhook: Failed to render full audio mix. Sending voice only as fallback.");
-      // Fallback to sending only voice if full mix rendering fails
-      const audioBlob = new Blob([rawVoiceAudioBuffer], { type: 'audio/mpeg' });
-      const formData = new FormData();
-      formData.append('intention', intention);
-      formData.append('theme', theme);
-      formData.append('voiceProfile', voiceProfile);
-      formData.append('audioFile', audioBlob, `meditation-voiceonly-renderfail-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
-      const response = await fetch(N8N_WEBHOOK_URL, { method: 'POST', body: formData });
-      if (!response.ok) console.error('Webhook Error (voice only fallback after render fail):', response.status, await response.text());
-      else console.log('Successfully sent voice-only data to webhook (render fail fallback).');
-      return;
-    }
-    
-    console.log("Webhook: Full audio mix rendered. Encoding to MP3...");
-    const mp3Blob = await audioBufferToMp3Function(fullMixAudioBuffer);
-
-    if (mp3Blob.size === 0) {
-        console.error("Webhook: MP3 blob size is 0. Sending voice only as fallback.");
-        // Fallback for empty MP3
-        const audioBlob = new Blob([rawVoiceAudioBuffer], { type: 'audio/mpeg' });
-        const formData = new FormData();
-        formData.append('intention', intention);
-        formData.append('theme', theme);
-        formData.append('voiceProfile', voiceProfile);
-        formData.append('audioFile', audioBlob, `meditation-voiceonly-emptyblob-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
-        const response = await fetch(N8N_WEBHOOK_URL, { method: 'POST', body: formData });
-        if (!response.ok) console.error('Webhook Error (voice only fallback after empty blob):', response.status, await response.text());
-        else console.log('Successfully sent voice-only data to webhook (empty blob fallback).');
-        return;
-    }
-
-    console.log("Webhook: MP3 encoded. Preparing FormData...");
-    const formData = new FormData();
-    formData.append('intention', intention); // The original full script/text
-    formData.append('theme', theme); // The theme of the meditation
-    formData.append('voiceProfile', voiceProfile);
-    // Sending the full mix MP3 blob
-    formData.append('audioFile', mp3Blob, `meditation-fullmix-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
-
-    const response = await fetch(N8N_WEBHOOK_URL, {
-      method: 'POST',
-      body: formData,
-      // Note: Content-Type is automatically set by the browser for FormData
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('Webhook Error:', response.status, errorBody);
-      // Optionally, update chat messages with webhook error
-      // setChatMessages(prev => [...prev, {type: 'error', text: `Failed to send data to webhook: ${response.status}`}]);
-    } else {
-      console.log('Successfully sent data to webhook.');
-      // Optionally, update chat messages with webhook success
-      // setChatMessages(prev => [...prev, {type: 'system', text: `Meditation data sent to integration service.`}]);
-    }
-  } catch (error) {
-    console.error('Error sending data to webhook:', error);
-    // Optionally, update chat messages with webhook error
-    // setChatMessages(prev => [...prev, {type: 'error', text: `Error sending data to webhook: ${error}`}]);
-  }
-}
-
-function App() {
+// This is the main application page component
+function MainPage() {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   
   const binauralPlayerRef = useRef<BinauralBeatPlayer | null>(null);
@@ -638,208 +512,6 @@ function App() {
     }
   };
 
-  // --- MP3 Encoding Utility (using placeholder for lamejs) ---
-  async function audioBufferToMp3(audioBuffer: AudioBuffer, onProgress?: (progress: number) => void): Promise<Blob> {
-    if (!lamejs || !lamejs.Mp3Encoder) {
-      throw new Error("MP3 Encoder (lamejs) is not loaded. Please ensure it is properly installed and imported.");
-    }
-
-    const mp3encoder = new lamejs.Mp3Encoder(audioBuffer.numberOfChannels, audioBuffer.sampleRate, 128); // 128kbps
-    const samplesLeft = audioBuffer.getChannelData(0); // Float32Array
-    let samplesRight: Float32Array | null = null;
-    if (audioBuffer.numberOfChannels === 2) {
-      samplesRight = audioBuffer.getChannelData(1); // Float32Array
-    }
-
-    const sampleBlockSize = 1152; // Standard block size for MP3 encoding
-    const mp3Data: Int8Array[] = [];
-
-    const floatTo16BitPCM = (input: Float32Array): Int16Array => {
-      const output = new Int16Array(input.length);
-      for (let i = 0; i < input.length; i++) {
-        const s = Math.max(-1, Math.min(1, input[i]));
-        output[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-      }
-      return output;
-    };
-
-    const samplesLeft16 = floatTo16BitPCM(samplesLeft);
-    const samplesRight16 = samplesRight ? floatTo16BitPCM(samplesRight) : null;
-
-    let currentPosition = 0;
-    const totalSamples = samplesLeft16.length;
-
-    while (currentPosition < totalSamples) {
-      const leftChunk = samplesLeft16.subarray(currentPosition, currentPosition + sampleBlockSize);
-      let rightChunk: Int16Array | null = null;
-      if (samplesRight16) {
-        rightChunk = samplesRight16.subarray(currentPosition, currentPosition + sampleBlockSize);
-      }
-
-      let mp3buf: Int8Array;
-      if (audioBuffer.numberOfChannels === 1 && leftChunk) {
-          mp3buf = mp3encoder.encodeBuffer(leftChunk);
-      } else if (audioBuffer.numberOfChannels === 2 && leftChunk && rightChunk) {
-          mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
-      } else {
-          break; // Should not happen if channels are 1 or 2
-      }
-      
-      if (mp3buf.length > 0) {
-        mp3Data.push(mp3buf);
-      }
-      currentPosition += sampleBlockSize;
-      if (onProgress) {
-        onProgress(Math.min(1, currentPosition / totalSamples));
-      }
-    }
-
-    const mp3buf = mp3encoder.flush();
-    if (mp3buf.length > 0) {
-      mp3Data.push(mp3buf);
-    }
-
-    return new Blob(mp3Data, { type: 'audio/mpeg' });
-  }
-  // --- End MP3 Encoding Utility ---
-
-
-  // --- Full Audio Mix Rendering Function ---
-  async function renderFullAudioMix(
-    rawMeditationArrayBuffer: ArrayBuffer,
-    mainAudioContextSampleRate: number,
-    currentAnalysisParams: IntentionAnalysisParameters | null
-  ): Promise<AudioBuffer | null> {
-    if (!currentAnalysisParams) {
-      console.error("Cannot render audio mix: analysisParams are missing.");
-      return null;
-    }
-    
-    try {
-      // 1. Decode the raw meditation audio & calculate duration
-      // Temporary context to decode, as OfflineAudioContext cannot decode directly it seems
-      const tempCtx = new AudioContext({ sampleRate: mainAudioContextSampleRate });
-      const decodedVoice = await tempCtx.decodeAudioData(rawMeditationArrayBuffer.slice(0));
-      await tempCtx.close(); // Close temporary context
-
-      const targetDuration = decodedVoice.duration / VOICE_PLAYBACK_RATE;
-      const offlineCtx = new OfflineAudioContext(2, Math.ceil(mainAudioContextSampleRate * targetDuration), mainAudioContextSampleRate);
-
-      // 2. Setup Meditation Voice Chain
-      const voiceSource = offlineCtx.createBufferSource();
-      voiceSource.buffer = decodedVoice;
-      voiceSource.playbackRate.value = VOICE_PLAYBACK_RATE;
-
-      const eqNode = offlineCtx.createBiquadFilter();
-      eqNode.type = VOICE_EQ_SETTINGS.type;
-      eqNode.frequency.setValueAtTime(VOICE_EQ_SETTINGS.frequency, 0);
-      eqNode.gain.setValueAtTime(VOICE_EQ_SETTINGS.gain, 0);
-
-      const compressorNode = offlineCtx.createDynamicsCompressor();
-      compressorNode.threshold.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.threshold, 0);
-      compressorNode.knee.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.knee, 0);
-      compressorNode.ratio.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.ratio, 0);
-      compressorNode.attack.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.attack, 0);
-      compressorNode.release.setValueAtTime(VOICE_COMPRESSOR_SETTINGS.release, 0);
-
-      const voiceGainNode = offlineCtx.createGain();
-      voiceGainNode.gain.value = VOICE_GAIN_VALUE;
-
-      const dryGainNode = offlineCtx.createGain();
-      dryGainNode.gain.value = VOICE_DRY_GAIN_VALUE;
-
-      const reverbNode = offlineCtx.createConvolver();
-      try {
-        reverbNode.buffer = createReverbImpulseResponse(offlineCtx);
-      } catch (e) {
-        console.error("Failed to create reverb for offline render:", e);
-        // Continue without reverb if it fails
-      }
-
-      const reverbGainNode = offlineCtx.createGain();
-      reverbGainNode.gain.value = VOICE_REVERB_GAIN_VALUE;
-
-      voiceSource.connect(eqNode).connect(compressorNode).connect(voiceGainNode);
-      voiceGainNode.connect(dryGainNode).connect(offlineCtx.destination);
-      if (reverbNode.buffer) {
-        voiceGainNode.connect(reverbNode).connect(reverbGainNode).connect(offlineCtx.destination);
-      }
-
-      // 3. Setup Binaural Beats (if active)
-      if (currentAnalysisParams.binauralBeatFrequency > 0) {
-        const baseFreq = currentAnalysisParams.acutonicsFrequency;
-        const beatFreq = currentAnalysisParams.binauralBeatFrequency;
-        const leftFrequency = baseFreq - beatFreq / 2;
-        const rightFrequency = baseFreq + beatFreq / 2;
-
-        const masterGainBinaural = offlineCtx.createGain();
-        masterGainBinaural.gain.value = BINAURAL_VOLUME;
-        masterGainBinaural.connect(offlineCtx.destination);
-
-        const leftOscillator = offlineCtx.createOscillator();
-        leftOscillator.type = 'sine';
-        leftOscillator.frequency.setValueAtTime(leftFrequency, 0);
-        const leftPanner = offlineCtx.createStereoPanner();
-        leftPanner.pan.setValueAtTime(-1, 0);
-        leftOscillator.connect(leftPanner).connect(masterGainBinaural);
-        leftOscillator.start(0);
-
-        const rightOscillator = offlineCtx.createOscillator();
-        rightOscillator.type = 'sine';
-        rightOscillator.frequency.setValueAtTime(rightFrequency, 0);
-        const rightPanner = offlineCtx.createStereoPanner();
-        rightPanner.pan.setValueAtTime(1, 0);
-        rightOscillator.connect(rightPanner).connect(masterGainBinaural);
-        rightOscillator.start(0);
-      }
-
-      // 4. Setup Ambient Noise (if active)
-      if (currentAnalysisParams.ambientNoiseType !== 'none') {
-        const noiseBufferSize = 2 * offlineCtx.sampleRate; // 2 seconds of noise
-        const noiseBufferOffline = offlineCtx.createBuffer(1, noiseBufferSize, offlineCtx.sampleRate);
-        const output = noiseBufferOffline.getChannelData(0);
-        for (let i = 0; i < noiseBufferSize; i++) {
-          output[i] = Math.random() * 2 - 1;
-        }
-
-        const noiseSource = offlineCtx.createBufferSource();
-        noiseSource.buffer = noiseBufferOffline;
-        noiseSource.loop = true;
-
-        let filterType: BiquadFilterType = 'lowpass';
-        let filterFreq = 20000;
-        let noiseVolume = 0.03;
-        if (currentAnalysisParams.ambientNoiseType === 'pink') { filterType = 'lowshelf'; filterFreq = 800; }
-        else if (currentAnalysisParams.ambientNoiseType === 'brown') { filterType = 'lowpass'; filterFreq = 500; }
-        if (filterFreq > 800) {
-          const reductionFactor = Math.min(0.02, (filterFreq - 800) / 20000 * 0.02);
-          noiseVolume = Math.max(0.01, noiseVolume - reductionFactor);
-        }
-
-        const noiseGain = offlineCtx.createGain();
-        noiseGain.gain.value = noiseVolume;
-
-        const noiseFilter = offlineCtx.createBiquadFilter();
-        noiseFilter.type = filterType;
-        noiseFilter.frequency.setValueAtTime(filterFreq, 0);
-        noiseFilter.Q.setValueAtTime(1, 0);
-
-        noiseSource.connect(noiseGain).connect(noiseFilter).connect(offlineCtx.destination);
-        noiseSource.start(0);
-      }
-
-      // 5. Start voice and rendering
-      voiceSource.start(0);
-      return await offlineCtx.startRendering();
-
-    } catch (error) {
-      console.error("Error rendering full audio mix:", error);
-      return null;
-    }
-  }
-  // --- End Full Audio Mix Rendering Function ---
-
-
   const handleDownloadMeditation = async () => {
     if (!currentMeditationAudio || !currentMeditationAudio.buffer || !(currentMeditationAudio.buffer instanceof ArrayBuffer) || currentMeditationAudio.buffer.byteLength === 0) {
       setChatMessages(prev => [...prev, {type: 'error', text: "No meditation audio available, buffer is invalid, or audio is empty."}]);
@@ -1039,6 +711,16 @@ function App() {
       </footer>
     </div>
   )
+}
+
+// App component now handles routing
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<MainPage />} />
+      <Route path="/test" element={<WebhookTestPage />} />
+    </Routes>
+  );
 }
 
 export default App
