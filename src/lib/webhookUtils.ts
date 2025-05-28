@@ -1,7 +1,7 @@
 import type { IntentionAnalysisParameters, VoiceProfile } from './deepseekApi'; // Adjust path as needed
 
-export const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook/a1f817bc-7b37-4626-9328-b111aada64a4';
-// export const N8N_WEBHOOK_URL = 'https://lancesmithcc.app.n8n.cloud/webhook-test/a1f817bc-7b37-4626-9328-b111aada64a4';
+export const N8N_WEBHOOK_URL_DEFAULT = 'https://lancesmithcc.app.n8n.cloud/webhook/a1f817bc-7b37-4626-9328-b111aada64a4';
+// export const N8N_WEBHOOK_URL_DEFAULT = 'https://lancesmithcc.app.n8n.cloud/webhook-test/a1f817bc-7b37-4626-9328-b111aada64a4';
 
 export async function sendToWebhook(
   intention: string, 
@@ -11,9 +11,12 @@ export async function sendToWebhook(
   analysisParams: IntentionAnalysisParameters | null,
   audioContext: AudioContext | OfflineAudioContext | null, // Can be OfflineAudioContext too
   renderFullMixFunction: (rawMeditationArrayBuffer: ArrayBuffer, mainAudioContextSampleRate: number, currentAnalysisParams: IntentionAnalysisParameters | null) => Promise<AudioBuffer | null>,
-  audioBufferToMp3Function: (audioBuffer: AudioBuffer, onProgress?: (progress: number) => void) => Promise<Blob>
+  audioBufferToMp3Function: (audioBuffer: AudioBuffer, onProgress?: (progress: number) => void) => Promise<Blob>,
+  targetWebhookUrl?: string // Optional: If provided, uses this URL instead of default
 ) {
-  if (!N8N_WEBHOOK_URL) {
+  const webhookUrlToUse = targetWebhookUrl || N8N_WEBHOOK_URL_DEFAULT;
+
+  if (!webhookUrlToUse) {
     console.warn("Webhook URL is not configured. Skipping webhook send.");
     return;
   }
@@ -27,7 +30,7 @@ export async function sendToWebhook(
     formData.append('audioFile', audioBlob, `meditation-voiceonly-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
     
     try {
-        const response = await fetch(N8N_WEBHOOK_URL, {
+        const response = await fetch(webhookUrlToUse, {
             method: 'POST',
             body: formData,
         });
@@ -59,7 +62,7 @@ export async function sendToWebhook(
       formData.append('theme', theme);
       formData.append('voiceProfile', voiceProfile);
       formData.append('audioFile', audioBlob, `meditation-voiceonly-renderfail-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
-      const response = await fetch(N8N_WEBHOOK_URL, { method: 'POST', body: formData });
+      const response = await fetch(webhookUrlToUse, { method: 'POST', body: formData });
       if (!response.ok) console.error('Webhook Error (voice only fallback after render fail):', response.status, await response.text());
       else console.log('Successfully sent voice-only data to webhook (render fail fallback).');
       return;
@@ -76,7 +79,7 @@ export async function sendToWebhook(
         formData.append('theme', theme);
         formData.append('voiceProfile', voiceProfile);
         formData.append('audioFile', audioBlob, `meditation-voiceonly-emptyblob-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
-        const response = await fetch(N8N_WEBHOOK_URL, { method: 'POST', body: formData });
+        const response = await fetch(webhookUrlToUse, { method: 'POST', body: formData });
         if (!response.ok) console.error('Webhook Error (voice only fallback after empty blob):', response.status, await response.text());
         else console.log('Successfully sent voice-only data to webhook (empty blob fallback).');
         return;
@@ -89,7 +92,7 @@ export async function sendToWebhook(
     formData.append('voiceProfile', voiceProfile);
     formData.append('audioFile', mp3Blob, `meditation-fullmix-${theme.replace(/[^a-z0-9_.-]/gi, '_').toLowerCase()}-${Date.now()}.mp3`);
 
-    const response = await fetch(N8N_WEBHOOK_URL, {
+    const response = await fetch(webhookUrlToUse, {
       method: 'POST',
       body: formData,
     });
